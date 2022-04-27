@@ -4,9 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:WPF_TextEditorView"
+             xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <TextBlock Text="qwe"/>
-    </Grid>
+    <WindowsFormsHost>
+        <WindowsFormsHost.Child>
+            <forms:Panel Dock="Fill" x:Name="Intrinsic"/>
+        </WindowsFormsHost.Child>
+    </WindowsFormsHost>
 </UserControl>
