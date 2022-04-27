@@ -13,11 +13,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TextEditorView
+namespace WPF_TextEditorView
 {
-    public partial class MainWindow : Window
+    public partial class TextEditor : UserControl
     {
-        public MainWindow()
+        public TextEditor()
         {
             InitializeComponent();
         }

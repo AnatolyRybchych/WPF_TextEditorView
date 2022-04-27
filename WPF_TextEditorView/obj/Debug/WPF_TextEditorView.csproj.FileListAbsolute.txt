@@ -1,0 +1,13 @@
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\bin\Debug\WPF_TextEditorView.dll
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\bin\Debug\WPF_TextEditorView.pdb
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.csproj.AssemblyReference.cache
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\TextEditor.g.cs
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView_MarkupCompile.cache
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView_MarkupCompile.lref
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\TextEditor.baml
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.g.resources
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.Properties.Resources.resources
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.csproj.GenerateResource.cache
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.csproj.CoreCompileInputs.cache
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.dll
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.pdb

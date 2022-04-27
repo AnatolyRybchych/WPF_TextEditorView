@@ -5,6 +5,8 @@ VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEditorView", "TextEditorView\TextEditorView.csproj", "{C67DEAD1-E7A7-48AA-9287-7DCCA496ACE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPF_TextEditorView", "WPF_TextEditorView\WPF_TextEditorView.csproj", "{425B801C-1A00-41EE-9603-AC1EA6B1E546}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{C67DEAD1-E7A7-48AA-9287-7DCCA496ACE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C67DEAD1-E7A7-48AA-9287-7DCCA496ACE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C67DEAD1-E7A7-48AA-9287-7DCCA496ACE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{425B801C-1A00-41EE-9603-AC1EA6B1E546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{425B801C-1A00-41EE-9603-AC1EA6B1E546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{425B801C-1A00-41EE-9603-AC1EA6B1E546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{425B801C-1A00-41EE-9603-AC1EA6B1E546}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
