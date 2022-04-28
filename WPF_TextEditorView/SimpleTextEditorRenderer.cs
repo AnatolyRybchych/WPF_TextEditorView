@@ -88,10 +88,12 @@ namespace WPF_TextEditorView
 
         public override void OnTextAppend(TextPasting[] pastingSnippets)
         {
+            requiredBufferRedraw = true;
         }
 
         public override void OnTextRemove(Range[] ranges)
         {
+            requiredBufferRedraw = true;
         }
 
         private void RedrawBuffer()
@@ -147,6 +149,7 @@ namespace WPF_TextEditorView
 
                 foreach (var carete in caretes)
                 {
+                    if (carete > l) continue;
                     Range careteLineRange = GetLineRange((int)carete);
                     string textBeforeCarete = text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving);
                     GetTextExtentPoint32W(hdc, textBeforeCarete, textBeforeCarete.Length, out size);
