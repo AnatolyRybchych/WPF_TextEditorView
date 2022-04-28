@@ -94,10 +94,52 @@ namespace WPF_TextEditorView
 
         private void RedrawBuffer()
         {
-            using(Graphics g = Graphics.FromHdc(backBufferHdc))
+            string text = observableText.ToString();
+            int l = observableText.Length;
+
+            List<Rectangle> selectionRects = new List<Rectangle>();
+            SelectObject(hdc, font);
+            foreach (var selection in selections)
+            {
+                int selectionEndIndex = (int)selection.Index + selection.Moving;
+                if (selection.Index > l || selectionEndIndex < 0 || selectionEndIndex + 1 > l) continue;
+
+                int min = Math.Min(selectionEndIndex, (int)selection.Index);
+                int max = Math.Max(selectionEndIndex, (int)selection.Index);
+                Range startRange = GetLineRange(min);
+                Range endRange = GetLineRange(max);
+                Size size;
+
+                Rectangle r = new Rectangle();
+                string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
+                GetTextExtentPoint32W(hdc, text.Substring(min - startRange.Moving, startRange.Moving), beforeSelection.Length, out size);
+                r.X = size.Width;
+                r.Y = (int)startRange.Index * fontHeight;
+                r.Height = fontHeight;
+                if (endRange.Index == startRange.Index)
+                {
+                    GetTextExtentPoint32W(hdc, text.Substring(min, max), max - min, out size);
+                    r.Width = size.Width;
+                }
+                else
+                {
+                    r.Width = BufferWidth - size.Width;
+                    GetTextExtentPoint32W(hdc, text.Substring(min - startRange.Moving, startRange.Moving), beforeSelection.Length, out size);
+                    string s = text.Substring(max - endRange.Moving, endRange.Moving);
+                    selectionRects.Add(new Rectangle(0, (int)((startRange.Index + 1) * fontHeight), BufferWidth, (int)(endRange.Index - startRange.Index - 1) * fontHeight));
+                    GetTextExtentPoint32W(hdc, s, s.Length, out size);
+                    selectionRects.Add(new Rectangle(0, (int)endRange.Index * fontHeight, size.Width, fontHeight));
+                }
+                selectionRects.Add(r);
+            }
+
+            using (Graphics g = Graphics.FromHdc(backBufferHdc))
             {
                 g.FillRectangle(Brushes.DarkGray, 0, 0, BufferWidth, BufferHeight);
+                foreach (var r in selectionRects)
+                    g.FillRectangle(Brushes.Orange, r);
             }
+
             Rectangle rect = new Rectangle(0, 0, BufferWidth, BufferHeight);
             DrawTextW(backBufferHdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
         }
@@ -111,6 +153,27 @@ namespace WPF_TextEditorView
             }
 
             BitBlt(hdc, square.Left, square.Top, square.Right - square.Left, square.Bottom - square.Top, backBufferHdc, square.Left, square.Top, SRCCOPY);
+        }
+
+        private Range GetLineRange(int index)
+        {
+            int line = 0;
+            int i = -1;
+            int in_line = 0;
+            bool newLine = false;
+            foreach (var ch in observableText.ToString())
+            {
+                if (ch == '\n') newLine = true;
+                if (++i == index) return new Range((uint)line, in_line);
+                if(newLine)
+                {
+                    in_line = -1;
+                    line++;
+                    newLine = false;
+                }
+                in_line++;
+            }
+            return new Range((uint)line, in_line);
         }
 
         ~SimpleTextEditorRenderer()

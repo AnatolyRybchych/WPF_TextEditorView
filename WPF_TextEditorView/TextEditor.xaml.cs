@@ -38,11 +38,15 @@ namespace WPF_TextEditorView
 
             text.Append(
                 @"sadsafsafsdfasfdfsdfigfdipgogojigofsdppohpo
-fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfioppppppppppppppppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
+fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfiopppppppppppppp
+ppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9
+er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
 fggreherrehhrerhereh"
             );
             renderer.OnFontChanged("TimesNewRoman", 0, 48, 400);
             renderer.OnTextAppend(new TextPasting[] { new TextPasting(0, text.ToString()) });
+
+            renderer.OnSettingSelections(new Range[] { new Range(20, 120) });
 
             //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
         }

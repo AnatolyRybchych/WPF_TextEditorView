@@ -44,6 +44,11 @@ namespace WPF_TextEditorView
         [DllImport("gdi32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool DeleteDC(IntPtr hdc);
+
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetTextExtentPoint32W(IntPtr hdc, string str, int strLen, out Size size);
+
     }
 
     public struct ABC
