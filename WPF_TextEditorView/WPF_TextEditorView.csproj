@@ -52,8 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Renderer.cs" />
+    <Compile Include="Range.cs" />
     <Compile Include="SimpleTextEditorRenderer.cs" />
     <Compile Include="TextEditorRenderer.cs" />
+    <Compile Include="TextPasting.cs" />
     <Compile Include="WinApi.cs" />
     <Page Include="TextEditor.xaml">
       <Generator>MSBuild:Compile</Generator>
