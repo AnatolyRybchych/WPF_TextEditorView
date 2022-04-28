@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Windows.Forms;
 using static WPF_TextEditorView.WinApi;
 
 namespace WPF_TextEditorView
@@ -18,6 +18,11 @@ namespace WPF_TextEditorView
         private uint[] caretes;
         private Range[] selections;
 
+        private Bitmap backBuffer;
+        private IntPtr backBufferHdc;
+
+        private bool requiredBufferRedraw;
+
         public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight, StringBuilder observableText) : base(hdc, bufferWidth, bufferHeight, observableText)
         {
             font = IntPtr.Zero;
@@ -26,6 +31,29 @@ namespace WPF_TextEditorView
             fontWeight = 0;
             caretes = new uint[0];
             selections = new Range[0];
+
+            backBuffer = new Bitmap(BufferWidth, BufferHeight);
+            using(Graphics g = Graphics.FromImage(backBuffer))
+                backBufferHdc = g.GetHdc();
+        }
+
+        public override void Resize(int width, int heigth)
+        {
+            if (width < 1 || heigth < 1) return;
+
+            base.Resize(width, heigth);
+
+            DeleteDC(backBufferHdc);
+            backBuffer.Dispose();
+
+            backBuffer = new Bitmap(width, heigth);
+            using (Graphics g = Graphics.FromImage(backBuffer))
+                backBufferHdc = g.GetHdc();
+
+            SelectObject(backBufferHdc, font);
+            SetBkMode(backBufferHdc, BkMode.TRANSPARENT);
+
+            requiredBufferRedraw = true;
         }
 
         public override void OnFontChanged(string faceName, int width, int heigth, int weight)
@@ -40,6 +68,10 @@ namespace WPF_TextEditorView
                 DeleteObject(font);
 
             font = CreateFontW(heigth, width, 0, 0, weight, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, faceName);
+            SelectObject(backBufferHdc, font);
+            SetBkMode(backBufferHdc, BkMode.TRANSPARENT);
+
+            requiredBufferRedraw = true;
         }
 
         public override void OnSetingCaretes(uint[] indices)
@@ -60,19 +92,34 @@ namespace WPF_TextEditorView
         {
         }
 
+        private void RedrawBuffer()
+        {
+            using(Graphics g = Graphics.FromHdc(backBufferHdc))
+            {
+                g.FillRectangle(Brushes.DarkGray, 0, 0, BufferWidth, BufferHeight);
+            }
+            Rectangle rect = new Rectangle(0, 0, BufferWidth, BufferHeight);
+            DrawTextW(backBufferHdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
+        }
+
         protected override void Render(Rectangle square)
         {
-            int l = observableText.Length;
+            if (requiredBufferRedraw)
+            {
+                RedrawBuffer();
+                requiredBufferRedraw = false;
+            }
 
-            SelectObject(hdc, font);
-            Rectangle rect = new Rectangle(0, 0, BufferWidth, BufferHeight);
-            DrawTextW(hdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
+            BitBlt(hdc, square.Left, square.Top, square.Right - square.Left, square.Bottom - square.Top, backBufferHdc, square.Left, square.Top, SRCCOPY);
         }
 
         ~SimpleTextEditorRenderer()
         {
             if(font != IntPtr.Zero)
                 DeleteObject(font);
+
+            DeleteDC(backBufferHdc);
+            backBuffer.Dispose();
         }
     }
 }

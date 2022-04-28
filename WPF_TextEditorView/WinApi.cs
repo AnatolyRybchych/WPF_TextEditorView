@@ -12,6 +12,7 @@ namespace WPF_TextEditorView
     {
         public const int ANTIALIASED_QUALITY = 0x4;
         public const int CLEARTYPE_QUALITY = 5;
+        public const UInt32 SRCCOPY = 0x00CC0020;
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int DrawTextW(IntPtr hdc, string lpchText, int cchText, ref Rectangle lprc, DrawTextFormat format);
@@ -21,23 +22,48 @@ namespace WPF_TextEditorView
                             UInt32 bStrikeOut, UInt32 iCharSet, UInt32 iOutPrecision, UInt32 iClipPrecision, UInt32 iQuality,
                             UInt32 iPitchAndFamily,string pszFaceName);
 
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("gdi32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetCharABCWidthsW(IntPtr hdc, uint wFirst, uint wLast,out ABC lpABC);
 
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("gdi32.dll")]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
 
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("gdi32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool DeleteObject(IntPtr obj);
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetBkMode(IntPtr hdc, BkMode mode);
+
+        [DllImport("gdi32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool BitBlt(IntPtr dst, int dstX, int dstY, int dstCx, int dstCy,
+                                         IntPtr src, int srcX, int secY, UInt32 rop);
+
+        [DllImport("gdi32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteDC(IntPtr hdc);
     }
 
     public struct ABC
     {
-        int a;
-        uint b;
-        int c;
+        public int A { get; set; }
+        public uint B { get; set; }
+        public int C { get; set; }
+
+        public ABC(int a, uint b, int c)
+        {
+            A = a;
+            B = b;
+            C = c;
+        }
+    }
+
+    public enum BkMode : int
+    {
+        OPAQUE = 0,
+        TRANSPARENT = 1,
     }
 
     public enum DrawTextFormat : uint
