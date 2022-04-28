@@ -47,6 +47,7 @@ fggreherrehhrerhereh"
             renderer.OnTextAppend(new TextPasting[] { new TextPasting(0, text.ToString()) });
 
             renderer.OnSettingSelections(new Range[] { new Range(20, 120) });
+            renderer.OnSetingCaretes(new uint[] { 5, 0, 100, (uint)text.Length });
 
             //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
         }

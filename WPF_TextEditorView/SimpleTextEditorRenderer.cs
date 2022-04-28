@@ -77,11 +77,13 @@ namespace WPF_TextEditorView
         public override void OnSetingCaretes(uint[] indices)
         {
             caretes = indices;
+            requiredBufferRedraw = true;
         }
 
         public override void OnSettingSelections(Range[] selections)
         {
             this.selections = selections;
+            requiredBufferRedraw = true;
         }
 
         public override void OnTextAppend(TextPasting[] pastingSnippets)
@@ -94,11 +96,15 @@ namespace WPF_TextEditorView
 
         private void RedrawBuffer()
         {
+            SelectObject(hdc, font);
+
             string text = observableText.ToString();
             int l = observableText.Length;
 
+            Size size;
+
             List<Rectangle> selectionRects = new List<Rectangle>();
-            SelectObject(hdc, font);
+
             foreach (var selection in selections)
             {
                 int selectionEndIndex = (int)selection.Index + selection.Moving;
@@ -108,7 +114,7 @@ namespace WPF_TextEditorView
                 int max = Math.Max(selectionEndIndex, (int)selection.Index);
                 Range startRange = GetLineRange(min);
                 Range endRange = GetLineRange(max);
-                Size size;
+                
 
                 Rectangle r = new Rectangle();
                 string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
@@ -138,6 +144,14 @@ namespace WPF_TextEditorView
                 g.FillRectangle(Brushes.DarkGray, 0, 0, BufferWidth, BufferHeight);
                 foreach (var r in selectionRects)
                     g.FillRectangle(Brushes.Orange, r);
+
+                foreach (var carete in caretes)
+                {
+                    Range careteLineRange = GetLineRange((int)carete);
+                    string textBeforeCarete = text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving);
+                    GetTextExtentPoint32W(hdc, textBeforeCarete, textBeforeCarete.Length, out size);
+                    g.FillRectangle(Brushes.Red, size.Width, careteLineRange.Index * fontHeight, 2, fontHeight);
+                }
             }
 
             Rectangle rect = new Rectangle(0, 0, BufferWidth, BufferHeight);
