@@ -9,6 +9,21 @@ namespace WPF_TextEditorView
 {
     internal abstract class TextEditorRenderer : Renderer
     {
+        //  -----------------------------------------------------------
+        //  |                    TextoffsetTop                        |
+        //  |T   ------------------------------------------------- T  |
+        //  |e   |Text Text Text text                 ^          | e  |
+        //  |x   |text and text                       |          | x  |
+        //  |t  L|                            TextRenderHeight   | t R|
+        //  |O  e|                                    |          | O i|
+        //  |f  f|                                    |          | f g|
+        //  |f  t| <----------TextRenderWidth---------|--------->| f h|
+        //  |s   |                                    |          | s t|
+        //  |e   |                                    |          | e  |
+        //  |t   |-----------------------------------------------| t  |
+        //  |                 TextOffsetBottom                        |
+        //  ------------------TextRendererCanvas-----------------------
+
         private int textOffsetTop;
         private int textOffsetLeft;
         private StringBuilder textContent;
