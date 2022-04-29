@@ -23,8 +23,6 @@ namespace WPF_TextEditorView
 
         private bool requiredBufferRedraw;
 
-        public override int TextX => 200;
-
         public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight, StringBuilder observableText) : base(hdc, bufferWidth, bufferHeight, observableText)
         {
             font = IntPtr.Zero;
@@ -37,12 +35,16 @@ namespace WPF_TextEditorView
             backBuffer = new Bitmap(BufferWidth, BufferHeight);
             using(Graphics g = Graphics.FromImage(backBuffer))
                 backBufferHdc = g.GetHdc();
+
+            TextOffsetLeft = 100;
+            TextOffsetTop = 20;
+            TextOffsetBottom = 20;
+            TextOffsetRight = 20;
         }
 
         public override void Resize(int width, int heigth)
         {
             if (width < 1 || heigth < 1) return;
-
             base.Resize(width, heigth);
 
             DeleteDC(backBufferHdc);
@@ -120,23 +122,36 @@ namespace WPF_TextEditorView
 
                 Rectangle r = new Rectangle();
                 string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
-                r.X = TextX + GetTextSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
-                r.Y = (int)startRange.Index * fontHeight;
-                r.Height = fontHeight;
+                r.X = TextOffsetLeft + GetTextSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
+                r.Y = TextOffsetTop + (int)startRange.Index * fontHeight;
+                r.Height = Math.Min(fontHeight - r.Y + TextOffsetTop, TextRenderHeight);
                 if (endRange.Index == startRange.Index)
-                    r.Width = GetTextSize(text.Substring(min, max)).Width;
+                    r.Width = Math.Max(GetTextSize(text.Substring(min, max)).Width - TextOffsetRight, 0);
                 else
                 {
-                    r.Width = BufferWidth - r.X;
-                    selectionRects.Add(new Rectangle(TextX, (int)((startRange.Index + 1) * fontHeight), BufferWidth, (int)(endRange.Index - startRange.Index - 1) * fontHeight));
-                    selectionRects.Add(new Rectangle(TextX, (int)endRange.Index * fontHeight, GetTextSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, fontHeight));
+                    r.Width = Math.Max(BufferWidth - r.X - TextOffsetRight, 0);
+                    selectionRects.Add(
+                        new Rectangle(
+                            TextOffsetLeft, 
+                            TextOffsetTop + (int)((startRange.Index + 1) * fontHeight), 
+                            Math.Min(BufferWidth, TextRenderWidth), 
+                            Math.Min((int)(endRange.Index - startRange.Index - 1) * fontHeight, TextRenderHeight - (int)((startRange.Index + 1) * fontHeight))
+                        ));
+
+                    selectionRects.Add(
+                        new Rectangle(
+                            TextOffsetLeft, 
+                            TextOffsetTop + (int)endRange.Index * fontHeight, 
+                            Math.Min(GetTextSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, TextRenderWidth),
+                            Math.Min(fontHeight, TextRenderHeight - (int)endRange.Index * fontHeight)
+                        ));
                 }
                 selectionRects.Add(r);
             }
 
             using (Graphics g = Graphics.FromHdc(backBufferHdc))
             {
-                g.FillRectangle(Brushes.DarkGray, 0, 0, BufferWidth, BufferHeight);
+                g.FillRectangle(Brushes.DarkGray, TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight - TextOffsetLeft, BufferHeight - TextOffsetBottom - TextOffsetTop);
                 foreach (var r in selectionRects)
                     g.FillRectangle(Brushes.Orange, r);
 
@@ -144,13 +159,25 @@ namespace WPF_TextEditorView
                 {
                     if (carete > l) continue;
                     Range careteLineRange = GetLineRange((int)carete);
-                    g.FillRectangle(Brushes.Red, TextX + GetTextSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width, careteLineRange.Index * fontHeight, 2, fontHeight);
+                    int careteTextX = GetTextSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width;
+                    int careteTextY = (int)careteLineRange.Index * fontHeight;
+
+                    if (careteTextX > TextRenderWidth || careteTextY > TextRenderHeight) continue;
+
+                    g.FillRectangle(
+                        Brushes.Red, 
+                        TextOffsetLeft + careteTextX, 
+                        TextOffsetTop + careteTextY,
+                        Math.Min(2, TextRenderWidth), 
+                        Math.Min(fontHeight, TextRenderHeight - careteTextY));
                 }
             }
 
-            RECT rect = new RECT(TextX, 0, BufferWidth, BufferHeight);
+            RECT rect = new RECT(TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight, BufferHeight - TextOffsetBottom);
             DrawTextW(backBufferHdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
         }
+
+
 
         protected override void Render(Rectangle square)
         {
