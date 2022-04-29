@@ -12,25 +12,15 @@ namespace WPF_TextEditorView
     internal class SimpleTextEditorRenderer : TextEditorRenderer
     {
         private IntPtr font;
-        private int fontWidth;
-        private int fontHeight;
-        private int fontWeight;
-        private uint[] caretes;
-        private Range[] selections;
 
         private Bitmap backBuffer;
         private IntPtr backBufferHdc;
 
         private bool requiredBufferRedraw;
 
-        public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight, StringBuilder observableText) : base(hdc, bufferWidth, bufferHeight, observableText)
+        public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
         {
             font = IntPtr.Zero;
-            fontWidth = 0;
-            fontHeight = 0;
-            fontWeight = 0;
-            caretes = new uint[0];
-            selections = new Range[0];
 
             backBuffer = new Bitmap(BufferWidth, BufferHeight);
             using(Graphics g = Graphics.FromImage(backBuffer))
@@ -60,12 +50,8 @@ namespace WPF_TextEditorView
             requiredBufferRedraw = true;
         }
 
-        public override void OnFontChanged(string faceName, int width, int heigth, int weight)
+        protected override void OnFontChanged(string faceName, int width, int heigth, int weight)
         {
-            fontWidth = width;
-            fontHeight = heigth;
-            fontWeight = weight;
-
             if (weight % 100 != 0 || weight < 0 || weight > 900) throw new Exception("Incompatible font weight it should be (0 <= weight => 900) && (weight % 100 == 0)");
 
             if(font != IntPtr.Zero)
@@ -78,24 +64,22 @@ namespace WPF_TextEditorView
             requiredBufferRedraw = true;
         }
 
-        public override void OnSetingCaretes(uint[] indices)
-        {
-            caretes = indices;
-            requiredBufferRedraw = true;
-        }
-
-        public override void OnSettingSelections(Range[] selections)
-        {
-            this.selections = selections;
-            requiredBufferRedraw = true;
-        }
-
-        public override void OnTextAppend(TextPasting[] pastingSnippets)
+        protected override void OnSetingCaretes(uint[] indices)
         {
             requiredBufferRedraw = true;
         }
 
-        public override void OnTextRemove(Range[] ranges)
+        protected override void OnSettingSelections(Range[] selections)
+        {
+            requiredBufferRedraw = true;
+        }
+
+        protected override void OnTextAppend(TextPasting snippet)
+        {
+            requiredBufferRedraw = true;
+        }
+
+        protected override void OnTextRemove(Range range)
         {
             requiredBufferRedraw = true;
         }
@@ -104,12 +88,12 @@ namespace WPF_TextEditorView
         {
             SelectObject(hdc, font);
 
-            string text = observableText.ToString();
-            int l = observableText.Length;
+            string text = TextSource.ToString();
+            int l = TextSource.Length;
 
             List<Rectangle> selectionRects = new List<Rectangle>();
 
-            foreach (var selection in selections)
+            foreach (var selection in Selections)
             {
                 int selectionEndIndex = (int)selection.Index + selection.Moving;
                 if (selection.Index > l || selectionEndIndex < 0 || selectionEndIndex + 1 > l) continue;
@@ -122,28 +106,28 @@ namespace WPF_TextEditorView
 
                 Rectangle r = new Rectangle();
                 string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
-                r.X = TextOffsetLeft + GetTextSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
-                r.Y = TextOffsetTop + (int)startRange.Index * fontHeight;
-                r.Height = Math.Min(fontHeight - r.Y + TextOffsetTop, TextRenderHeight);
+                r.X = TextOffsetLeft + GetTextPixelSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
+                r.Y = TextOffsetTop + (int)startRange.Index * FontHeight;
+                r.Height = Math.Min(FontHeight - r.Y + TextOffsetTop, TextRenderHeight);
                 if (endRange.Index == startRange.Index)
-                    r.Width = Math.Max(GetTextSize(text.Substring(min, max)).Width - TextOffsetRight, 0);
+                    r.Width = Math.Max(GetTextPixelSize(text.Substring(min, max)).Width - TextOffsetRight, 0);
                 else
                 {
                     r.Width = Math.Max(BufferWidth - r.X - TextOffsetRight, 0);
                     selectionRects.Add(
                         new Rectangle(
                             TextOffsetLeft, 
-                            TextOffsetTop + (int)((startRange.Index + 1) * fontHeight), 
+                            TextOffsetTop + (int)((startRange.Index + 1) * FontHeight), 
                             Math.Min(BufferWidth, TextRenderWidth), 
-                            Math.Min((int)(endRange.Index - startRange.Index - 1) * fontHeight, TextRenderHeight - (int)((startRange.Index + 1) * fontHeight))
+                            Math.Min((int)(endRange.Index - startRange.Index - 1) * FontHeight, TextRenderHeight - (int)((startRange.Index + 1) * FontHeight))
                         ));
 
                     selectionRects.Add(
                         new Rectangle(
                             TextOffsetLeft, 
-                            TextOffsetTop + (int)endRange.Index * fontHeight, 
-                            Math.Min(GetTextSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, TextRenderWidth),
-                            Math.Min(fontHeight, TextRenderHeight - (int)endRange.Index * fontHeight)
+                            TextOffsetTop + (int)endRange.Index * FontHeight, 
+                            Math.Min(GetTextPixelSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, TextRenderWidth),
+                            Math.Min(FontHeight, TextRenderHeight - (int)endRange.Index * FontHeight)
                         ));
                 }
                 selectionRects.Add(r);
@@ -155,12 +139,12 @@ namespace WPF_TextEditorView
                 foreach (var r in selectionRects)
                     g.FillRectangle(Brushes.Orange, r);
 
-                foreach (var carete in caretes)
+                foreach (var carete in Caretes)
                 {
                     if (carete > l) continue;
                     Range careteLineRange = GetLineRange((int)carete);
-                    int careteTextX = GetTextSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width;
-                    int careteTextY = (int)careteLineRange.Index * fontHeight;
+                    int careteTextX = GetTextPixelSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width;
+                    int careteTextY = (int)careteLineRange.Index * FontHeight;
 
                     if (careteTextX > TextRenderWidth || careteTextY > TextRenderHeight) continue;
 
@@ -169,12 +153,12 @@ namespace WPF_TextEditorView
                         TextOffsetLeft + careteTextX, 
                         TextOffsetTop + careteTextY,
                         Math.Min(2, TextRenderWidth), 
-                        Math.Min(fontHeight, TextRenderHeight - careteTextY));
+                        Math.Min(FontHeight, TextRenderHeight - careteTextY));
                 }
             }
 
             RECT rect = new RECT(TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight, BufferHeight - TextOffsetBottom);
-            DrawTextW(backBufferHdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
+            DrawTextW(backBufferHdc, TextSource.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
         }
 
 
@@ -196,7 +180,7 @@ namespace WPF_TextEditorView
             int i = -1;
             int in_line = 0;
             bool newLine = false;
-            foreach (var ch in observableText.ToString())
+            foreach (var ch in TextSource.ToString())
             {
                 if (ch == '\n') newLine = true;
                 if (++i == index) return new Range((uint)line, in_line);
@@ -211,7 +195,7 @@ namespace WPF_TextEditorView
             return new Range((uint)line, in_line);
         }
 
-        public override Size GetTextSize(string text)
+        public override Size GetTextPixelSize(string text)
         {
             SelectObject(hdc, font);
             Size size;

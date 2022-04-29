@@ -34,20 +34,17 @@ namespace WPF_TextEditorView
             Intrinsic.Resize += Intrinsic_Resize;
 
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
-            renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height, text);
+            renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
 
-            text.Append(
-                @"sadsafsafsdfasfdfsdfigfdipgogojigofsdppohpo
+            renderer.ChangeFont("TimesNewRoman", 0, 48, 400);
+            renderer.TextAppend(new TextPasting(0, @"sadsafsafsdfasfdfsdfigfdipgogojigofsdppohpo
 fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfiopppppppppppppp
 ppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9
 er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
-fggreherrehhrerhereh"
-            );
-            renderer.OnFontChanged("TimesNewRoman", 0, 48, 400);
-            renderer.OnTextAppend(new TextPasting[] { new TextPasting(0, text.ToString()) });
+fggreherrehhrerhereh"));
 
-            renderer.OnSettingSelections(new Range[] { new Range(20, 200) });
-            renderer.OnSetingCaretes(new uint[] { 5, 0, 100, (uint)text.Length + 1, (uint)text.Length });
+            renderer.SetSelections(new Range[] { new Range(20, 200) });
+            renderer.SetCaretes(new uint[] { 5, 0, 100, (uint)text.Length + 1, (uint)text.Length });
 
             //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
         }
