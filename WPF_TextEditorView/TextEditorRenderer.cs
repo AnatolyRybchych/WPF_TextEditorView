@@ -17,6 +17,9 @@ namespace WPF_TextEditorView
         public abstract void OnSettingSelections(Range[] selections);
         public abstract void OnFontChanged(string faceName, int width, int heigth, int weight);
 
+        public abstract Size GetTextSize(string text);
+        public abstract int TextX { get; }
+
         protected StringBuilder observableText;
 
         protected TextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight, StringBuilder observableText) : base(hdc, bufferWidth, bufferHeight)

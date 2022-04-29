@@ -23,6 +23,8 @@ namespace WPF_TextEditorView
 
         private bool requiredBufferRedraw;
 
+        public override int TextX => 200;
+
         public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight, StringBuilder observableText) : base(hdc, bufferWidth, bufferHeight, observableText)
         {
             font = IntPtr.Zero;
@@ -103,8 +105,6 @@ namespace WPF_TextEditorView
             string text = observableText.ToString();
             int l = observableText.Length;
 
-            Size size;
-
             List<Rectangle> selectionRects = new List<Rectangle>();
 
             foreach (var selection in selections)
@@ -120,23 +120,16 @@ namespace WPF_TextEditorView
 
                 Rectangle r = new Rectangle();
                 string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
-                GetTextExtentPoint32W(hdc, text.Substring(min - startRange.Moving, startRange.Moving), beforeSelection.Length, out size);
-                r.X = size.Width;
+                r.X = TextX + GetTextSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
                 r.Y = (int)startRange.Index * fontHeight;
                 r.Height = fontHeight;
                 if (endRange.Index == startRange.Index)
-                {
-                    GetTextExtentPoint32W(hdc, text.Substring(min, max), max - min, out size);
-                    r.Width = size.Width;
-                }
+                    r.Width = GetTextSize(text.Substring(min, max)).Width;
                 else
                 {
-                    r.Width = BufferWidth - size.Width;
-                    GetTextExtentPoint32W(hdc, text.Substring(min - startRange.Moving, startRange.Moving), beforeSelection.Length, out size);
-                    string s = text.Substring(max - endRange.Moving, endRange.Moving);
-                    selectionRects.Add(new Rectangle(0, (int)((startRange.Index + 1) * fontHeight), BufferWidth, (int)(endRange.Index - startRange.Index - 1) * fontHeight));
-                    GetTextExtentPoint32W(hdc, s, s.Length, out size);
-                    selectionRects.Add(new Rectangle(0, (int)endRange.Index * fontHeight, size.Width, fontHeight));
+                    r.Width = BufferWidth - r.X;
+                    selectionRects.Add(new Rectangle(TextX, (int)((startRange.Index + 1) * fontHeight), BufferWidth, (int)(endRange.Index - startRange.Index - 1) * fontHeight));
+                    selectionRects.Add(new Rectangle(TextX, (int)endRange.Index * fontHeight, GetTextSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, fontHeight));
                 }
                 selectionRects.Add(r);
             }
@@ -151,13 +144,11 @@ namespace WPF_TextEditorView
                 {
                     if (carete > l) continue;
                     Range careteLineRange = GetLineRange((int)carete);
-                    string textBeforeCarete = text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving);
-                    GetTextExtentPoint32W(hdc, textBeforeCarete, textBeforeCarete.Length, out size);
-                    g.FillRectangle(Brushes.Red, size.Width, careteLineRange.Index * fontHeight, 2, fontHeight);
+                    g.FillRectangle(Brushes.Red, TextX + GetTextSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width, careteLineRange.Index * fontHeight, 2, fontHeight);
                 }
             }
 
-            Rectangle rect = new Rectangle(0, 0, BufferWidth, BufferHeight);
+            RECT rect = new RECT(TextX, 0, BufferWidth, BufferHeight);
             DrawTextW(backBufferHdc, observableText.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
         }
 
@@ -191,6 +182,14 @@ namespace WPF_TextEditorView
                 in_line++;
             }
             return new Range((uint)line, in_line);
+        }
+
+        public override Size GetTextSize(string text)
+        {
+            SelectObject(hdc, font);
+            Size size;
+            GetTextExtentPoint32W(hdc, text, text.Length, out size);
+            return size;
         }
 
         ~SimpleTextEditorRenderer()

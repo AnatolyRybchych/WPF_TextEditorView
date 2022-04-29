@@ -15,7 +15,7 @@ namespace WPF_TextEditorView
         public const UInt32 SRCCOPY = 0x00CC0020;
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        public static extern int DrawTextW(IntPtr hdc, string lpchText, int cchText, ref Rectangle lprc, DrawTextFormat format);
+        public static extern int DrawTextW(IntPtr hdc, string lpchText, int cchText, ref RECT lprc, DrawTextFormat format);
 
         [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateFontW(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, UInt32 bItalic, UInt32 bUnderline,
@@ -49,6 +49,73 @@ namespace WPF_TextEditorView
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetTextExtentPoint32W(IntPtr hdc, string str, int strLen, out Size size);
 
+        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        public static extern int DrawTextExW(IntPtr hdc, string lpchText, int cchText, ref RECT lprc, DrawTextFormat format, ref DrawTextParams @params);
+    }
+
+
+    public struct DrawTextParams
+    {
+        public uint CbSize { get; private set; }
+        public int ITabLength { get; private set; }
+        public int ILeftMargin { get; private set; }
+        public int IRightMargin { get; private set; }
+        public uint UiLengthDrawn { get; private set; }
+
+        public DrawTextParams(int tabLength, int leftMargin, int rightMargin, uint uiLengthDrawn)
+        {
+            CbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<DrawTextParams>();
+            ITabLength = tabLength;
+            ILeftMargin = leftMargin;
+            IRightMargin = rightMargin;
+            UiLengthDrawn = uiLengthDrawn;
+        }
+    }
+
+    public struct RECT
+    {
+        public int Left { get; set; }
+        public int Top { get; set; }
+        public int Right { get; set; }
+        public int Bottom { get; set; }
+
+        public int X
+        {
+            get => Left;
+            set => Left = value;
+        }
+
+        public int Y
+        {
+            get => Top;
+            set => Top = value;
+        }
+
+        public int Width
+        {
+            get => Right - Left;
+            set => Right = value + Left;
+        }
+
+        public int Height
+        {
+            get => Bottom - Top;
+            set => Bottom = value + Top;
+        }
+
+        public RECT(Rectangle rect) : this(rect.Left, rect.Top, rect.Right, rect.Bottom)
+        {}
+
+        public RECT(int width, int height) : this(0, 0, width, height)
+        { }
+
+        public RECT(int left, int top, int rigth, int bottom)
+        {
+            this.Left = left;
+            this.Top = top;
+            this.Right = rigth;
+            this.Bottom = bottom;
+        }
     }
 
     public struct ABC
