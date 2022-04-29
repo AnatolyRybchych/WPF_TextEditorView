@@ -36,17 +36,27 @@ namespace WPF_TextEditorView
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
             renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
 
-            renderer.ChangeFont("TimesNewRoman", 0, 48, 400);
+            renderer.SetFont("TimesNewRoman", 0, 48, 400);
             renderer.TextAppend(new TextPasting(0, @"sadsafsafsdfasfdfsdfigfdipgogojigofsdppohpo
 fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfiopppppppppppppp
 ppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9
 er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
 fggreherrehhrerhereh"));
 
-            renderer.SetSelections(new Range[] { new Range(20, 200) });
+            renderer.SetSelections(new Range[] { new Range(20, 198) });
             renderer.SetCaretes(new uint[] { 5, 0, 100, (uint)text.Length + 1, (uint)text.Length });
 
+            Intrinsic.MouseWheel += Intrinsic_MouseWheel;
+
             //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
+        }
+
+        private void Intrinsic_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            
+            renderer.VerticalScrollPixels -= e.Delta > 0 ? renderer.FontHeight : -renderer.FontHeight;
+            //renderer.HorisontalScrollPixels -= e.Delta > 0 ? renderer.FontHeight : -renderer.FontHeight;
+            renderer.ForseRender();
         }
 
         private void Intrinsic_Resize(object sender, EventArgs e)

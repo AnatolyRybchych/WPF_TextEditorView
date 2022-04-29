@@ -9,7 +9,7 @@ namespace WPF_TextEditorView
 {
     internal abstract class Renderer
     {
-        protected IntPtr hdc;
+        private IntPtr hdc;
         public int BufferWidth { get; private set; }
         public int BufferHeight { get; private set; }
 
@@ -22,7 +22,7 @@ namespace WPF_TextEditorView
 
         public void ForseRender(Rectangle square)
         {
-            Render(square);
+            Render(square, hdc);
         }
 
         public void ForseRender()
@@ -30,7 +30,7 @@ namespace WPF_TextEditorView
             ForseRender(new Rectangle(0, 0, BufferWidth, BufferHeight));
         }
 
-        protected abstract void Render(Rectangle square);
+        protected abstract void Render(Rectangle square, IntPtr hdc);
 
         public virtual void Resize(int width, int heigth)
         {

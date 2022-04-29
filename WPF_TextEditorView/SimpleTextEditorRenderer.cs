@@ -18,6 +18,10 @@ namespace WPF_TextEditorView
 
         private bool requiredBufferRedraw;
 
+        private int textDrawingOffsetY => VerticalScrollPixels % FontHeight;
+        private int textDrawingLinesOffset => VerticalScrollPixels / FontHeight;
+        private string textToDraw => string.Join("\n", TextSource.ToString().Split('\n').Where((str, line) => line >= textDrawingLinesOffset));
+
         public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
         {
             font = IntPtr.Zero;
@@ -50,26 +54,24 @@ namespace WPF_TextEditorView
             requiredBufferRedraw = true;
         }
 
-        protected override void OnFontChanged(string faceName, int width, int heigth, int weight)
+        protected override void OnFontChanged()
         {
-            if (weight % 100 != 0 || weight < 0 || weight > 900) throw new Exception("Incompatible font weight it should be (0 <= weight => 900) && (weight % 100 == 0)");
-
             if(font != IntPtr.Zero)
                 DeleteObject(font);
 
-            font = CreateFontW(heigth, width, 0, 0, weight, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, faceName);
+            font = CreateFontW(FontHeight, FontWidth, 0, 0, FontWeight, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, FontFace);
             SelectObject(backBufferHdc, font);
             SetBkMode(backBufferHdc, BkMode.TRANSPARENT);
 
             requiredBufferRedraw = true;
         }
 
-        protected override void OnSetingCaretes(uint[] indices)
+        protected override void OnSetingCaretes()
         {
             requiredBufferRedraw = true;
         }
 
-        protected override void OnSettingSelections(Range[] selections)
+        protected override void OnSettingSelections()
         {
             requiredBufferRedraw = true;
         }
@@ -79,22 +81,23 @@ namespace WPF_TextEditorView
             requiredBufferRedraw = true;
         }
 
-        protected override void OnTextRemove(Range range)
+        protected override void OnTextRemove(Range range, string removedText)
         {
             requiredBufferRedraw = true;
         }
 
         private void RedrawBuffer()
         {
-            SelectObject(hdc, font);
+            string text = textToDraw;
+            string src = TextSource.ToString();
 
-            string text = TextSource.ToString();
-            int l = TextSource.Length;
+            int l = src.Length;
 
             List<Rectangle> selectionRects = new List<Rectangle>();
 
             foreach (var selection in Selections)
             {
+                int textDrawingRectOffsetY = FontHeight * textDrawingLinesOffset;
                 int selectionEndIndex = (int)selection.Index + selection.Moving;
                 if (selection.Index > l || selectionEndIndex < 0 || selectionEndIndex + 1 > l) continue;
 
@@ -105,28 +108,31 @@ namespace WPF_TextEditorView
                 
 
                 Rectangle r = new Rectangle();
-                string beforeSelection = text.Substring(min - startRange.Moving, startRange.Moving);
-                r.X = TextOffsetLeft + GetTextPixelSize(text.Substring(min - startRange.Moving, startRange.Moving)).Width;
-                r.Y = TextOffsetTop + (int)startRange.Index * FontHeight;
-                r.Height = Math.Min(FontHeight - r.Y + TextOffsetTop, TextRenderHeight);
+                string beforeSelection = src.Substring(min - startRange.Moving, startRange.Moving);
+                r.X = Math.Max(TextOffsetLeft + GetTextPixelSize(src.Substring(min - startRange.Moving, startRange.Moving)).Width - HorisontalScrollPixels, TextOffsetLeft);
+                r.Y = Math.Min(TextOffsetTop + (int)startRange.Index * FontHeight - textDrawingRectOffsetY, TextOffsetTop);
+                r.Height = Math.Min(FontHeight - (int)startRange.Index * FontHeight + TextOffsetTop, TextRenderHeight);
                 if (endRange.Index == startRange.Index)
-                    r.Width = Math.Max(GetTextPixelSize(text.Substring(min, max)).Width - TextOffsetRight, 0);
+                    r.Width = Math.Max(GetTextPixelSize(src.Substring(min, max)).Width - TextOffsetRight, 0) ;
                 else
                 {
                     r.Width = Math.Max(BufferWidth - r.X - TextOffsetRight, 0);
                     selectionRects.Add(
                         new Rectangle(
-                            TextOffsetLeft, 
-                            TextOffsetTop + (int)((startRange.Index + 1) * FontHeight), 
+                            TextOffsetLeft,
+                            TextOffsetTop + (int)((startRange.Index + 1) * FontHeight) - textDrawingRectOffsetY,
                             Math.Min(BufferWidth, TextRenderWidth), 
-                            Math.Min((int)(endRange.Index - startRange.Index - 1) * FontHeight, TextRenderHeight - (int)((startRange.Index + 1) * FontHeight))
+                            Math.Min((int)(endRange.Index - startRange.Index - 1) * FontHeight, TextRenderHeight - (int)((startRange.Index + 1) * FontHeight) )
                         ));
+
+                    int lastSelectedLineWidth = GetTextPixelSize(src.Substring(max - endRange.Moving, endRange.Moving)).Width;
 
                     selectionRects.Add(
                         new Rectangle(
                             TextOffsetLeft, 
-                            TextOffsetTop + (int)endRange.Index * FontHeight, 
-                            Math.Min(GetTextPixelSize(text.Substring(max - endRange.Moving, endRange.Moving)).Width, TextRenderWidth),
+                            TextOffsetTop + (int)endRange.Index * FontHeight - textDrawingRectOffsetY,
+                            
+                            Math.Min(lastSelectedLineWidth - HorisontalScrollPixels, TextRenderWidth),
                             Math.Min(FontHeight, TextRenderHeight - (int)endRange.Index * FontHeight)
                         ));
                 }
@@ -135,16 +141,20 @@ namespace WPF_TextEditorView
 
             using (Graphics g = Graphics.FromHdc(backBufferHdc))
             {
-                g.FillRectangle(Brushes.DarkGray, TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight - TextOffsetLeft, BufferHeight - TextOffsetBottom - TextOffsetTop);
+                g.FillRectangle(Brushes.Black, 0, 0, BufferWidth, BufferHeight);
+                g.FillRectangle(Brushes.DarkGray, TextOffsetLeft, TextOffsetTop, TextRenderWidth, TextRenderHeight);
+
                 foreach (var r in selectionRects)
                     g.FillRectangle(Brushes.Orange, r);
 
                 foreach (var carete in Caretes)
                 {
-                    if (carete > l) continue;
                     Range careteLineRange = GetLineRange((int)carete);
-                    int careteTextX = GetTextPixelSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width;
-                    int careteTextY = (int)careteLineRange.Index * FontHeight;
+
+                    if (careteLineRange.Index < l) continue;
+
+                    int careteTextX = GetTextPixelSize(text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width - HorisontalScrollPixels;
+                    int careteTextY = (int)careteLineRange.Index * FontHeight + VerticalScrollPixels;
 
                     if (careteTextX > TextRenderWidth || careteTextY > TextRenderHeight) continue;
 
@@ -157,13 +167,14 @@ namespace WPF_TextEditorView
                 }
             }
 
-            RECT rect = new RECT(TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight, BufferHeight - TextOffsetBottom);
-            DrawTextW(backBufferHdc, TextSource.ToString(), -1, ref rect, DrawTextFormat.DT_TOP);
+            RECT rect = new RECT(TextOffsetLeft, TextOffsetTop - textDrawingOffsetY, BufferWidth - TextOffsetRight, BufferHeight - TextOffsetBottom);
+            DrawTextParams @params = new DrawTextParams(0, -HorisontalScrollPixels, VerticalScrollPixels, 0);
+            DrawTextExW(backBufferHdc, text, -1, ref rect, DrawTextFormat.DT_TOP, ref @params);
         }
 
 
 
-        protected override void Render(Rectangle square)
+        protected override void Render(Rectangle square, IntPtr hdc)
         {
             if (requiredBufferRedraw)
             {
@@ -197,10 +208,19 @@ namespace WPF_TextEditorView
 
         public override Size GetTextPixelSize(string text)
         {
-            SelectObject(hdc, font);
             Size size;
-            GetTextExtentPoint32W(hdc, text, text.Length, out size);
+            GetTextExtentPoint32W(backBufferHdc, text, text.Length, out size);
             return size;
+        }
+
+        protected override void OnSettingHorisontalScrollPixels()
+        {
+            requiredBufferRedraw = true;
+        }
+
+        protected override void OnSettingVerticalScrollPixels()
+        {
+            requiredBufferRedraw = true;
         }
 
         ~SimpleTextEditorRenderer()

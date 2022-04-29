@@ -49,7 +49,7 @@ namespace WPF_TextEditorView
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetTextExtentPoint32W(IntPtr hdc, string str, int strLen, out Size size);
 
-        [DllImport("gdi32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int DrawTextExW(IntPtr hdc, string lpchText, int cchText, ref RECT lprc, DrawTextFormat format, ref DrawTextParams @params);
     }
 

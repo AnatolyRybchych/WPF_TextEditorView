@@ -29,6 +29,8 @@ namespace WPF_TextEditorView
         private StringBuilder textContent;
         private int textOffsetRight;
         private int textOffsetBottom;
+        private int horisontalScrollPixels;
+        private int verticalScrollPixels;
 
         protected StringBuilder TextSource => textContent;
         public uint[] Caretes { get; private set; }
@@ -42,6 +44,27 @@ namespace WPF_TextEditorView
         public int FontHeight { get; private set; }
         public int FontWidth { get; private set; }
         public int FontWeight { get; private set; }
+
+
+        public int HorisontalScrollPixels
+        {
+            get => horisontalScrollPixels;
+            set
+            {
+                horisontalScrollPixels = value < 0 ? 0 : value;
+                OnSettingHorisontalScrollPixels();
+            }
+        }
+
+        public int VerticalScrollPixels
+        {
+            get => verticalScrollPixels;
+            set
+            {
+                verticalScrollPixels = value < 0 ? 0 : value;
+                OnSettingVerticalScrollPixels();
+            }
+        }
 
         public int TextOffsetLeft
         {
@@ -85,19 +108,29 @@ namespace WPF_TextEditorView
             }
         }
 
-
-        protected abstract void OnTextRemove(Range range);
+        protected abstract void OnSettingHorisontalScrollPixels();
+        protected abstract void OnSettingVerticalScrollPixels();
+        protected abstract void OnTextRemove(Range range, string removedText);
         protected abstract void OnTextAppend(TextPasting snippet);
-        protected abstract void OnSetingCaretes(uint[] indices);
-        protected abstract void OnSettingSelections(Range[] selections);
-        protected abstract void OnFontChanged(string faceName, int width, int heigth, int weight);
+        protected abstract void OnSetingCaretes();
+        protected abstract void OnSettingSelections();
+        protected abstract void OnFontChanged();
         public abstract Size GetTextPixelSize(string text);
 
 
         public void TextRemove(Range range)
         {
-            TextSource.Remove((int)range.Index, range.Moving);
-            OnTextRemove(range);
+            StringBuilder removedText = new StringBuilder();
+
+            Range positiveRange = range.Moving < 0 ? new Range((uint)(range.Index + range.Moving), -range.Moving) : range;
+            int removingEnd = (int)positiveRange.Index + positiveRange.Moving;
+
+            for (int i = (int)positiveRange.Index; i < removingEnd; i++)
+                removedText.Append(TextSource[i]);
+
+
+            TextSource.Remove((int)positiveRange.Index, positiveRange.Moving);
+            OnTextRemove(positiveRange, removedText.ToString());
         }
 
         public void TextAppend(TextPasting snippet)
@@ -109,23 +142,23 @@ namespace WPF_TextEditorView
         public void SetCaretes(uint[] indices)
         {
             Caretes = indices;
-            OnSetingCaretes(indices);
+            OnSetingCaretes();
         }
 
         public void SetSelections(Range[] selections)
         {
             Selections = selections;
-            OnSettingSelections(selections);
+            OnSettingSelections();
         }
 
-        public void ChangeFont(string faceName, int width, int heigth, int weight)
+        public void SetFont(string faceName, int width, int heigth, int weight)
         {
             FontFace = faceName;
             FontHeight = heigth;
             FontWidth = width;
             FontWeight = weight;
 
-            OnFontChanged(faceName, width, heigth, width);
+            OnFontChanged();
         }
 
         public TextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
