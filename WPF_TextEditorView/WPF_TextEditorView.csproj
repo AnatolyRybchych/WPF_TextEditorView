@@ -53,7 +53,12 @@
   <ItemGroup>
     <Compile Include="Renderer.cs" />
     <Compile Include="Range.cs" />
+    <Compile Include="SimpleTextEditorManager.cs" />
     <Compile Include="SimpleTextEditorRenderer.cs" />
+    <Compile Include="TextEditorIntrinsic.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TextEditorManager.cs" />
     <Compile Include="TextEditorRenderer.cs" />
     <Compile Include="TextPasting.cs" />
     <Compile Include="WinApi.cs" />

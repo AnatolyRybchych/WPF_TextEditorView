@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WPF_TextEditorView
 {
-    internal class TextPasting
+    public class TextPasting
     {
         public uint Index { get; private set; }
         public string Text { get; private set; }

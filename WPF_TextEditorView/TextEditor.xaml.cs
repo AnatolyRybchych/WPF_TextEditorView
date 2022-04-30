@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -20,49 +21,61 @@ using static WPF_TextEditorView.WinApi;
 
 namespace WPF_TextEditorView
 {
-    public partial class TextEditor : UserControl
+    public partial class TextEditor : System.Windows.Controls.UserControl
     {
         TextEditorRenderer renderer;
+        TextEditorManager manager;
         Graphics graphics;
-        StringBuilder text;
 
         public TextEditor()
         {
-            text = new StringBuilder();
             InitializeComponent();
             Intrinsic.Paint += Intrinsic_Paint;
             Intrinsic.Resize += Intrinsic_Resize;
+
+            Intrinsic.PreviewKeyDown += Intrinsic_PreviewKeyDown;
+            Intrinsic.KeyUp += Intrinsic_KeyUp;
             Intrinsic.MouseDown += Intrinsic_MouseDown;
+            Intrinsic.MouseUp += Intrinsic_MouseUp;
+            Intrinsic.MouseWheel += Intrinsic_MouseWheel;
+            Intrinsic.Char += Intrinsic_Char;
 
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
             renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
 
-            renderer.SetFont("TimesNewRoman", 0, 48, 400);
-            renderer.TextAppend(new TextPasting(0, @"sadsafsafsdfasfdfsdfigfdipgogojig" + "\t" + @"ofsdppohpo
-fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfiopppppppppppppp
-ppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9
-er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
-fggreherrehhrerhereh"));
-
-            renderer.SetSelections(new Range[] { new Range(2, 10) });
-            renderer.SetCaretes(new uint[] { 5, 0, 100, (uint)renderer.Text.Length, (uint)renderer.Text.Length });
-
-            Intrinsic.MouseWheel += Intrinsic_MouseWheel;
-
-            //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
+            manager = new SimpleTextEditorManager();
+            manager.SetRenderer(renderer);
         }
 
-        private void Intrinsic_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void Intrinsic_Char(char ch)
         {
-            MessageBox.Show($"char:'{renderer.Text[(int)renderer.GetCharIndexFromTextRenderRectPoint(e.X - renderer.TextOffsetLeft, e.Y - renderer.TextOffsetTop)]}'");
+            manager.CharInput(ch);
+        }
+
+        private void Intrinsic_PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
+        {
+            manager.KeyDown((int)e.KeyCode, e.Shift, e.Alt);
         }
 
         private void Intrinsic_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            
-            renderer.VerticalScrollPixels -= e.Delta > 0 ? renderer.FontHeight : -renderer.FontHeight;
-            //renderer.HorisontalScrollPixels -= e.Delta > 0 ? renderer.FontHeight : -renderer.FontHeight;
-            renderer.ForseRender();
+            manager.Scroll(0, e.Delta > 0 ? 1 : -1);
+        }
+
+        private void Intrinsic_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            manager.MouseUp(e.X, e.Y, (int)e.Button);
+        }
+
+        private void Intrinsic_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            Intrinsic.Focus();
+            manager.MouseDown(e.X, e.Y, (int)e.Button);
+        }
+
+        private void Intrinsic_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            manager.KeyUp((int)e.KeyCode, e.Shift, e.Alt);
         }
 
         private void Intrinsic_Resize(object sender, EventArgs e)

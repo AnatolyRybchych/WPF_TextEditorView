@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WPF_TextEditorView
 {
-    internal abstract class Renderer
+    public abstract class Renderer
     {
         private IntPtr hdc;
         public int BufferWidth { get; private set; }

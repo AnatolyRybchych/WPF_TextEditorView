@@ -9,7 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <WindowsFormsHost>
         <WindowsFormsHost.Child>
-            <forms:Panel Dock="Fill" x:Name="Intrinsic"/>
+            <local:TextEditorIntrinsic Dock="Fill" x:Name="Intrinsic"/>
         </WindowsFormsHost.Child>
     </WindowsFormsHost>
 </UserControl>

@@ -11,3 +11,4 @@ C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_Tex
 C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.csproj.CoreCompileInputs.cache
 C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.dll
 C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\WPF_TextEditorView.pdb
+C:\Users\Velichaisyi\Desktop\TextEditorView\WPF_TextEditorView\obj\Debug\GeneratedInternalTypeHelper.g.cs

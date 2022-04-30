@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WPF_TextEditorView
 {
-    internal abstract class TextEditorRenderer : Renderer
+    public abstract class TextEditorRenderer : Renderer
     {
         //  -----------------------------------------------------------
         //  |                    TextoffsetTop                        |
@@ -149,6 +149,11 @@ namespace WPF_TextEditorView
             OnSetingCaretes();
         }
 
+        public void SetCaretes()
+        {
+            OnSetingCaretes();
+        }
+
         public void SetSelections(Range[] selections)
         {
             Selections = selections;
@@ -169,6 +174,9 @@ namespace WPF_TextEditorView
         {
             if (hdc == IntPtr.Zero) throw new ArgumentNullException("hdc");
             if (bufferWidth <= 0 || bufferHeight <= 0) throw new ArgumentException("buffer shold have size value > 0");
+
+            Selections = new Range[0];
+            Caretes = new uint[0];
 
             FontFace = null;
             FontHeight = 0;
