@@ -32,23 +32,29 @@ namespace WPF_TextEditorView
             InitializeComponent();
             Intrinsic.Paint += Intrinsic_Paint;
             Intrinsic.Resize += Intrinsic_Resize;
+            Intrinsic.MouseDown += Intrinsic_MouseDown;
 
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
             renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
 
             renderer.SetFont("TimesNewRoman", 0, 48, 400);
-            renderer.TextAppend(new TextPasting(0, @"sadsafsafsdfasfdfsdfigfdipgogojigofsdppohpo
+            renderer.TextAppend(new TextPasting(0, @"sadsafsafsdfasfdfsdfigfdipgogojig" + "\t" + @"ofsdppohpo
 fdkgfdgpfdhfghfdgfhgfhdfhfghdghgfdhdghhdfiopppppppppppppp
 ppppppppppppppppppppppppppppp[weifdsfd9ggi9-4r9g9
 er9ure90ureq09=re09=u9ruw9req90qrew90rgt=fog0dfogahgpfhpgohpgf
 fggreherrehhrerhereh"));
 
-            renderer.SetSelections(new Range[] { new Range(20, 198) });
-            renderer.SetCaretes(new uint[] { 5, 0, 100, (uint)text.Length + 1, (uint)text.Length });
+            renderer.SetSelections(new Range[] { new Range(2, 10) });
+            renderer.SetCaretes(new uint[] { 5, 0, 100, (uint)renderer.Text.Length, (uint)renderer.Text.Length });
 
             Intrinsic.MouseWheel += Intrinsic_MouseWheel;
 
             //MessageBox.Show(string.Join("\n", new InstalledFontCollection().Families.Select(family => family.Name)));
+        }
+
+        private void Intrinsic_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            MessageBox.Show($"char:'{renderer.Text[(int)renderer.GetCharIndexFromTextRenderRectPoint(e.X - renderer.TextOffsetLeft, e.Y - renderer.TextOffsetTop)]}'");
         }
 
         private void Intrinsic_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)

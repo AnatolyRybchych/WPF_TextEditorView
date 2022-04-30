@@ -20,7 +20,7 @@ namespace WPF_TextEditorView
         //  |f  t| <----------TextRenderWidth---------|--------->| f h|
         //  |s   |                                    |          | s t|
         //  |e   |                                    |          | e  |
-        //  |t   |-----------------------------------------------| t  |
+        //  |t   |------------TextRenderRect---------------------| t  |
         //  |                 TextOffsetBottom                        |
         //  ------------------TextRendererCanvas-----------------------
 
@@ -115,7 +115,11 @@ namespace WPF_TextEditorView
         protected abstract void OnSetingCaretes();
         protected abstract void OnSettingSelections();
         protected abstract void OnFontChanged();
-        public abstract Size GetTextPixelSize(string text);
+
+        public abstract Size GetTextSizePixels(string text);
+        public abstract uint GetCharIndexFromTextRenderRectPoint(int x, int y);
+        public abstract uint GetTextWidthPixels();
+        public abstract uint GetTextHeightPixels();
 
 
         public void TextRemove(Range range)
