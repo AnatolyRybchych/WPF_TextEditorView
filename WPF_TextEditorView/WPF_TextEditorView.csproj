@@ -51,6 +51,8 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BufferedTextEditorRenderer.cs" />
+    <Compile Include="GdiFont.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="SimpleTextEditorManager.cs" />
@@ -60,6 +62,7 @@
     </Compile>
     <Compile Include="TextEditorManager.cs" />
     <Compile Include="TextEditorRenderer.cs" />
+    <Compile Include="TextEditorRendererGDI.cs" />
     <Compile Include="TextPasting.cs" />
     <Compile Include="WinApi.cs" />
     <Page Include="TextEditor.xaml">

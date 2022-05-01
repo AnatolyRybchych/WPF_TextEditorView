@@ -61,7 +61,7 @@ namespace WPF_TextEditorView
             OnScroll(xWheelTriggers, yWheelTriggers);
         }
 
-        //should provide privious renderer data to new renderer
+        //should provide previous renderer data to new renderer
         protected abstract void OnRendererChanged();
         protected abstract void OnCharInput(char ch);
         protected abstract void OnTextInput(string text);

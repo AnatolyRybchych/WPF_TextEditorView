@@ -69,11 +69,13 @@ namespace WPF_TextEditorView
         protected override void OnRendererChanged()
         {
             Renderer.SetCaretes(new uint[] { 0 });
-            Renderer.SetFont("TimesNewRoman", 0, 48, 400);
+            Renderer.SetFont("Times New Roman", 0, 48, 400);
         }
 
         protected override void OnScroll(int xWheelTriggers, int yWheelTriggers)
         {
+            Renderer.VerticalScrollPixels -= yWheelTriggers * Renderer.FontHeight / 2;
+            Renderer.ForseRender();
         }
 
         protected override void OnTextInput(string text)

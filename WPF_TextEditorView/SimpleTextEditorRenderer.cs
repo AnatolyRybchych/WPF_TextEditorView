@@ -14,12 +14,12 @@ namespace WPF_TextEditorView
         private IntPtr font;
 
         private Bitmap backBuffer;
-        private IntPtr backBufferHdc;
+        protected IntPtr backBufferHdc;
 
         private bool requiredBufferRedraw;
 
         private int textDrawingOffsetY => VerticalScrollPixels % FontHeight;
-        private int textDrawingLinesOffset => VerticalScrollPixels / FontHeight;
+        private int textDrawingLinesOffset => VerticalScrollPixels / FontHeight; 
         private string textToDraw => string.Join("\n", TextSource.ToString().Split('\n').Where((str, line) => line >= textDrawingLinesOffset));
 
         public SimpleTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
@@ -141,8 +141,7 @@ namespace WPF_TextEditorView
 
             using (Graphics g = Graphics.FromHdc(backBufferHdc))
             {
-                g.FillRectangle(Brushes.Black, 0, 0, BufferWidth, BufferHeight);
-                g.FillRectangle(Brushes.DarkGray, TextOffsetLeft, TextOffsetTop, TextRenderWidth, TextRenderHeight);
+                g.FillRectangle(Brushes.DarkGray, new Rectangle(TextOffsetLeft, TextOffsetTop, TextRenderWidth, TextRenderHeight));
 
                 foreach (var r in selectionRects)
                     g.FillRectangle(Brushes.Orange, r);
@@ -156,7 +155,7 @@ namespace WPF_TextEditorView
                     if (careteLineRange.Index < textDrawingLinesOffset) continue;
 
                     int careteTextX = GetTextSizePixels(Text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width - HorisontalScrollPixels;
-                    int careteTextY = (int)careteLineRange.Index * FontHeight - FontHeight * textDrawingLinesOffset;
+                    int careteTextY = (int)careteLineRange.Index * FontHeight - FontHeight * textDrawingLinesOffset - textDrawingOffsetY;
 
                     if (careteTextX > TextRenderWidth || careteTextY > TextRenderHeight) continue;
 
