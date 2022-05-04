@@ -13,18 +13,18 @@ namespace WPF_TextEditorView
 
         protected TextEditorRendererGDI(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
         {
-            Font = new GdiFont("Times New Roman", 32);
+            Font = new GdiFont(BackBufferHdc, "Times New Roman", 32, 400, 0);
+        }
+
+        public override void Resize(int width, int heigth)
+        {
+            base.Resize(width, heigth);
+            Font.SetHdc(BackBufferHdc);
         }
 
         protected override void OnFontChanged()
         {
-            Font = new GdiFont(FontFace, FontHeight, FontWeight, FontWeight);
-        }
-
-        public override Size GetTextSizePixels(string text)
-        {
-            Font.Select(BackBufferHdc);
-            return GdiFont.GetTextSize(BackBufferHdc, text);
+            Font = new GdiFont(BackBufferHdc, FontFace, FontHeight, FontWeight, FontWidth);
         }
     }
 }

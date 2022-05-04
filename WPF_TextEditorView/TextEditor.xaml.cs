@@ -41,7 +41,7 @@ namespace WPF_TextEditorView
             Intrinsic.Char += Intrinsic_Char;
 
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
-            renderer = new SimpleTextEditorRenderer(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
+            renderer = new TextEditorRendererGDIWordByWord(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
 
             manager = new SimpleTextEditorManager();
             manager.SetRenderer(renderer);

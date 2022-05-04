@@ -10,26 +10,55 @@ namespace WPF_TextEditorView
 {
     public class GdiFont
     {
-        public IntPtr Font { get; private set; }
+        private IntPtr hdc;
 
-        public GdiFont(string face, int height, int weight = 400, int width = 0)
+        public IntPtr Font { get; private set; }
+        public BkMode BkMode { get; private set; }
+
+        public GdiFont(IntPtr hdc, string face, int height, int weight = 400, int width = 0)
         {
+            this.hdc = hdc;
             Font = CreateFontW(height, width, 0, 0, weight, 0, 0, 0, 0, 0, 0, CLEARTYPE_QUALITY, 0, face);
+            Select();
+            SetBkMode(BkMode.TRANSPARENT);
+            BkMode = BkMode.TRANSPARENT;
         }
 
-        public void Select(IntPtr hdc)
+        public virtual void SetHdc(IntPtr hdc)
+        {
+            this.hdc = hdc;
+            Select();
+            SetBkMode(BkMode);
+        }
+
+        public void SetBkMode(BkMode mode)
+        {
+            WinApi.SetBkMode(hdc, mode);
+        }
+
+        public void Select()
         {
             SelectObject(hdc, Font);
         }
 
-        public static System.Drawing.Size GetTextSize(IntPtr hdc, string text)
+        public System.Drawing.Size GetTextSize(string text)
         {
             System.Drawing.Size res;
             GetTextExtentPoint32W(hdc, text, text.Length, out res);
             return res;
         }
 
-        public static ABC GetABC(IntPtr hdc, char ch)
+        public void DrawText(string text, RECT rect, DrawTextFormat format)
+        {
+            DrawTextW(hdc, text, text.Length, ref rect, format);
+        }
+
+        public void DrawText(string text, RECT rect, DrawTextFormat format, DrawTextParams @params)
+        {
+            DrawTextExW(hdc, text, text.Length, ref rect, format, ref @params);
+        }
+
+        public ABC GetABC(char ch)
         {
             ABC res;
             GetCharABCWidthsW(hdc, ch, ch, out res);
