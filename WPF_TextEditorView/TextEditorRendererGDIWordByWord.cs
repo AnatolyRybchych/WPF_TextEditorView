@@ -60,6 +60,7 @@ namespace WPF_TextEditorView
 
         protected override void OnSettingHorisontalScrollPixels()
         {
+            RequireBufferRedraw();
         }
 
         protected override void OnSettingSelections()
@@ -68,6 +69,7 @@ namespace WPF_TextEditorView
 
         protected override void OnSettingVerticalScrollPixels()
         {
+            RequireBufferRedraw();
         }
 
         protected override void OnTextAppend(TextPasting snippet)
@@ -75,14 +77,25 @@ namespace WPF_TextEditorView
             TextLines.AppendTextInfo appendInfo;
             lines.AppendText(snippet, out appendInfo);
 
-            DrawBg(new Rectangle(0, 0, BufferWidth, BufferHeight));
+            int overtTextCy = FontHeight * appendInfo.FirstEditedLineIndex;
+            int textCy = FontHeight * appendInfo.EditedLinesCount;
+
+            WinApi.BitBlt(BackBufferHdc, TextOffsetLeft, TextOffsetTop, TextRenderWidth, overtTextCy, BackBufferHdc, TextOffsetLeft, TextOffsetTop, WinApi.SRCCOPY);
+
+            DrawBg(new Rectangle(TextOffsetLeft, TextOffsetTop + overtTextCy, TextRenderWidth, textCy));
+            DrawText(lines.GetLinesSafe(appendInfo.FirstEditedLineIndex, appendInfo.EditedLinesCount),
+                new RECT(-HorisontalScrollPixels, -(VerticalScrollPixels % FontHeight) + overtTextCy, 0, 0));
+        }
+
+        protected virtual void DrawText(string text, RECT margin = new RECT())
+        {
             Font.DrawText(
-                lines.GetLines(appendInfo.FirstEditedLine, (int)appendInfo.EditedLinesCount),
-                new RECT(TextOffsetLeft, TextOffsetTop + FontHeight * (int)appendInfo.FirstEditedLineIndex, BufferWidth - TextOffsetRight, BufferWidth - TextOffsetBottom),
+                text,
+                new RECT(TextOffsetLeft + margin.Left, TextOffsetTop + margin.Top , BufferWidth - TextOffsetRight - margin.Right, BufferWidth - TextOffsetBottom - margin.Bottom),
                 DrawTextFormat.DT_LEFT);
         }
 
-        protected void DrawBg(Rectangle rect)
+        protected virtual void DrawBg(Rectangle rect)
         {
             using (Graphics g = Graphics.FromHdc(BackBufferHdc))
                 g.FillRectangle(Brushes.Orange, rect);
@@ -95,11 +108,8 @@ namespace WPF_TextEditorView
         protected override void RedrawBuffer()
         {
             DrawBg(new Rectangle(0, 0, BufferWidth, BufferHeight));
-
-            Font.DrawText(
-                Text,
-                new RECT(TextOffsetLeft, TextOffsetTop, BufferWidth - TextOffsetRight, BufferWidth - TextOffsetBottom),
-                DrawTextFormat.DT_LEFT);
+            DrawText(lines.GetLinesSafe(VerticalScrollPixels / FontHeight, BufferHeight / FontHeight + 2),
+                new RECT(-HorisontalScrollPixels, -VerticalScrollPixels % FontHeight));
         }
     }
 }

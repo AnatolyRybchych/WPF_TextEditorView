@@ -38,7 +38,25 @@ namespace WPF_TextEditorView
             return result;
         }
 
-        private LinkedListNode<string> GetNodeByCharIndex(uint index, out uint line, out uint lineStartIndex)
+        public string GetLinesSafe(int index, int count = int.MaxValue)
+        {
+            int currIndex = -1;
+            LinkedListNode<string> node = Lines.First;
+            while (++currIndex != index)
+                if ((node = node.Next) == null) return "";
+
+            string result = "";
+            int lastIndex = currIndex + count;
+
+            while (currIndex++ < lastIndex)
+            {
+                result += node.Value;
+                if ((node = node.Next) == null) return result;
+            }
+            return result;
+        }
+
+        private LinkedListNode<string> GetNodeByCharIndex(uint index, out int line, out int lineStartIndex)
         {
             lineStartIndex = 0;
             line = 0;
@@ -46,12 +64,12 @@ namespace WPF_TextEditorView
 
             do
             {
-                lineStartIndex += (uint)curr.Value.Length;
+                lineStartIndex += curr.Value.Length;
                 line++;
                 if (lineStartIndex > index)
                 {
                     line--;
-                    lineStartIndex -= (uint)curr.Value.Length;
+                    lineStartIndex -= curr.Value.Length;
                     return curr;
                 }
             } while ((curr = curr.Next) != null);
@@ -65,9 +83,16 @@ namespace WPF_TextEditorView
         }
 
         //require line without newline char
-        private void AddTextIntoLine(LinkedListNode<string> into, uint index, string text)
+        private void AddTextIntoLine(LinkedListNode<string> into, int index, string text)
         {
             into.Value = into.Value.Substring(0, (int)index) + text + into.Value.Substring((int)index);
+        }
+
+        //require line without newline char
+        private void AddLineIntoLine(LinkedListNode<string> into, int index, string text)
+        {
+            Lines.AddAfter(into, into.Value.Substring((int)index));
+            into.Value = into.Value.Substring(0, (int)index) + text + "\n";
         }
 
         public void AppendText(TextPasting snippet, out AppendTextInfo appendInfo)
@@ -76,7 +101,7 @@ namespace WPF_TextEditorView
             string first = newLines[0];
             string last = newLines[newLines.Length - 1];
 
-            uint line, lineStartIndex;
+            int line, lineStartIndex;
 
             LinkedListNode<string> node = GetNodeByCharIndex(snippet.Index, out line, out lineStartIndex);
 
@@ -86,14 +111,13 @@ namespace WPF_TextEditorView
             appendInfo.FirstEditedLineIndex = line;
             appendInfo.FirstEditedLineIndexCharIndex = lineStartIndex;
 
-            if (string.IsNullOrEmpty(first) == false)
-                AddTextIntoLine(node, snippet.Index - lineStartIndex, first);
 
             if (newLines.Length > 1)
             {
-                for (int i = 1; i < newLines.Length - 1; i++)
+                for (int i = 0; i < newLines.Length - 1; i++)
                 {
-                    node = Lines.AddAfter(node, newLines[i]);
+                    AddLineIntoLine(node, (int)snippet.Index - lineStartIndex, newLines[i]);
+                    node = node.Next;
                     appendInfo.EditedLinesCount++;
                 }
 
@@ -108,16 +132,20 @@ namespace WPF_TextEditorView
                     appendInfo.EditedLinesCount++;
                 }
             }
+            else
+            {
+                AddTextIntoLine(node, (int)snippet.Index - lineStartIndex, first);
+            }
         }
 
         public struct AppendTextInfo
         {
             public LinkedListNode<string> FirstEditedLine { get; set; }
-            public uint FirstEditedLineIndex { get; set; }
-            public uint FirstEditedLineIndexCharIndex { get; set; }
-            public uint EditedLinesCount { get; set; }
+            public int FirstEditedLineIndex { get; set; }
+            public int FirstEditedLineIndexCharIndex { get; set; }
+            public int EditedLinesCount { get; set; }
 
-            public AppendTextInfo(LinkedListNode<string> firstEditedLine, uint firstEditedLineIndex, uint firstEditedLineIndexCharIndex, uint editedLinesCount)
+            public AppendTextInfo(LinkedListNode<string> firstEditedLine, int firstEditedLineIndex, int firstEditedLineIndexCharIndex, int editedLinesCount)
             {
                 FirstEditedLine = firstEditedLine;
                 FirstEditedLineIndex = firstEditedLineIndex;
