@@ -56,7 +56,6 @@
     <Compile Include="Renderer.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="SimpleTextEditorManager.cs" />
-    <Compile Include="SimpleTextEditorRenderer.cs" />
     <Compile Include="StringExt.cs" />
     <Compile Include="TextEditorIntrinsic.cs">
       <SubType>Component</SubType>

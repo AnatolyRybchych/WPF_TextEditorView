@@ -117,7 +117,7 @@ namespace WPF_TextEditorView
             string line = startLine.Value;
             Rectangle rect = new Rectangle(
                 TextOffsetLeft,
-                TextOffsetTop + startLineIndex * FontHeight,
+                TextOffsetTop + startLineIndex * FontHeight - VerticalScrollPixels,
                 TextRenderWidth,
                 FontHeight
             );
@@ -176,7 +176,7 @@ namespace WPF_TextEditorView
 
         private void DrawText()
         {
-            RECT textRect = new RECT(TextOffsetLeft, TextOffsetTop, TextRenderWidth - TextOffsetRight, TextRenderHeight - TextOffsetBottom);
+            RECT textRect = new RECT(TextOffsetLeft - HorisontalScrollPixels, TextOffsetTop - VerticalScrollPixels % FontHeight, TextRenderWidth - TextOffsetRight, TextRenderHeight - TextOffsetBottom);
 
             LinkedListNode<string> lineNode = lines.Lines.First;
             for (int i = 0; i < VerticalScrollPixels / FontHeight; i++)

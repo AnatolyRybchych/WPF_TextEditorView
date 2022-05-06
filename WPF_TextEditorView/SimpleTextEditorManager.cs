@@ -114,7 +114,7 @@ namespace WPF_TextEditorView
         protected override void OnRendererChanged()
         {
             Renderer.SetCaretes(new uint[] { 0 });
-            Renderer.SetFont("Times New Roman", 0, 48, 400);
+            Renderer.SetFont("Monoid-Regular", 0, 48, 400);
             Renderer.ForseRender();
         }
 
