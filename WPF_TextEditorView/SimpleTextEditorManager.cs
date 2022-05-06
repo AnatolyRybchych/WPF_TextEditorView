@@ -9,6 +9,7 @@ namespace WPF_TextEditorView
 {
     internal class SimpleTextEditorManager : TextEditorManager
     {
+        private bool isShiftDown = false;
         public SimpleTextEditorManager()
         {
         }
@@ -51,11 +52,20 @@ namespace WPF_TextEditorView
                     Renderer.SetCaretes();
                     Renderer.ForseRender();
                     break;
+                case Keys.Shift:
+                    isShiftDown = true;
+                    break;
             }
         }
 
         protected override void OnKeyUp(int keyCode, bool shift, bool alt)
         {
+            switch ((Keys)keyCode)
+            {
+                case Keys.Shift:
+                    isShiftDown = false;
+                    break;
+            }
         }
 
         protected override void OnMouseDown(int x, int y, int mouseButton)

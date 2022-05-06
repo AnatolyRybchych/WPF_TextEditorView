@@ -74,16 +74,16 @@ namespace WPF_TextEditorView
 
         protected override void OnTextAppend(TextPasting snippet)
         {
-            TextLines.AppendTextInfo appendInfo;
-            lines.AppendText(snippet, out appendInfo);
+            TextLines.ChangeTextInfo changeInfo;
+            lines.AppendText(snippet, out changeInfo);
 
-            int overtTextCy = FontHeight * appendInfo.FirstEditedLineIndex;
-            int textCy = FontHeight * appendInfo.EditedLinesCount;
+            int overtTextCy = FontHeight * changeInfo.FirstChangedLineIndex;
+            int textCy = FontHeight * changeInfo.ChangedLinesCount;
 
             WinApi.BitBlt(BackBufferHdc, TextOffsetLeft, TextOffsetTop, TextRenderWidth, overtTextCy, BackBufferHdc, TextOffsetLeft, TextOffsetTop, WinApi.SRCCOPY);
 
             DrawBg(new Rectangle(TextOffsetLeft, TextOffsetTop + overtTextCy, TextRenderWidth, textCy));
-            DrawText(lines.GetLinesSafe(appendInfo.FirstEditedLineIndex, appendInfo.EditedLinesCount),
+            DrawText(lines.GetLinesSafe(changeInfo.FirstChangedLineIndex, changeInfo.ChangedLinesCount),
                 new RECT(-HorisontalScrollPixels, -(VerticalScrollPixels % FontHeight) + overtTextCy, 0, 0));
         }
 
@@ -103,13 +103,16 @@ namespace WPF_TextEditorView
 
         protected override void OnTextRemove(Range range, string removedText)
         {
+            TextLines.ChangeTextInfo changeInfo;
+            lines.RemoveText(range, out changeInfo);
+            RequireBufferRedraw();
         }
 
         protected override void RedrawBuffer()
         {
             DrawBg(new Rectangle(0, 0, BufferWidth, BufferHeight));
             DrawText(lines.GetLinesSafe(VerticalScrollPixels / FontHeight, BufferHeight / FontHeight + 2),
-                new RECT(-HorisontalScrollPixels, -VerticalScrollPixels % FontHeight));
+                new RECT(-HorisontalScrollPixels, -VerticalScrollPixels % FontHeight, 0, 0));
         }
     }
 }
