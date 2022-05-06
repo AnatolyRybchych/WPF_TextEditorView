@@ -37,6 +37,7 @@ namespace WPF_TextEditorView
             Intrinsic.KeyUp += Intrinsic_KeyUp;
             Intrinsic.MouseDown += Intrinsic_MouseDown;
             Intrinsic.MouseUp += Intrinsic_MouseUp;
+            Intrinsic.MouseMove += Intrinsic_MouseMove;
             Intrinsic.MouseWheel += Intrinsic_MouseWheel;
             Intrinsic.Char += Intrinsic_Char;
 
@@ -45,6 +46,11 @@ namespace WPF_TextEditorView
 
             manager = new SimpleTextEditorManager();
             manager.SetRenderer(renderer);
+        }
+
+        private void Intrinsic_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            manager.MouseMove(e.X, e.Y);
         }
 
         private void Intrinsic_Char(char ch)
@@ -64,13 +70,13 @@ namespace WPF_TextEditorView
 
         private void Intrinsic_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            manager.MouseUp(e.X, e.Y, (int)e.Button);
+            manager.MouseUp(e.X, e.Y, e.Button);
         }
 
         private void Intrinsic_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             Intrinsic.Focus();
-            manager.MouseDown(e.X, e.Y, (int)e.Button);
+            manager.MouseDown(e.X, e.Y, e.Button);
         }
 
         private void Intrinsic_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)

@@ -9,7 +9,7 @@ namespace WPF_TextEditorView
 {
     public abstract class Renderer
     {
-        private IntPtr hdc;
+        protected IntPtr hdc;
         public int BufferWidth { get; private set; }
         public int BufferHeight { get; private set; }
 

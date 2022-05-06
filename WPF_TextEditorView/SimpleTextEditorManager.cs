@@ -10,6 +10,10 @@ namespace WPF_TextEditorView
     internal class SimpleTextEditorManager : TextEditorManager
     {
         private bool isShiftDown = false;
+        private bool isLbuttonDown = false;
+        private bool selection = false;
+        int selectionStart = 0;
+
         public SimpleTextEditorManager()
         {
         }
@@ -68,18 +72,50 @@ namespace WPF_TextEditorView
             }
         }
 
-        protected override void OnMouseDown(int x, int y, int mouseButton)
+        protected override void OnMouseDown(int x, int y, MouseButtons mouseButton)
         {
+            if (mouseButton == MouseButtons.Left)
+            {
+                isLbuttonDown = true;
+                selectionStart = Renderer.GetCharIndexFromTextRenderRectPoint(x, y);
+            }
         }
 
-        protected override void OnMouseUp(int x, int y, int mouseButton)
+        protected override void OnMouseMove(int x, int y)
         {
+            if(isLbuttonDown)
+            {
+                Range selectionRange = new Range((uint)selectionStart, Renderer.GetCharIndexFromTextRenderRectPoint(x, y) - selectionStart + 1);
+                if (selectionRange.Moving < 0) selectionRange = new Range((uint)(selectionRange.Index + selectionRange.Moving), -selectionRange.Moving);
+                Renderer.SetSelections(new Range[] { selectionRange });
+                Renderer.ForseRender();
+                selection = true;
+            }
+        }
+
+        protected override void OnMouseUp(int x, int y, MouseButtons mouseButton)
+        {
+            if (isLbuttonDown)
+            {
+                if (selection)
+                {
+                    Range selectionRange = new Range((uint)selectionStart, Renderer.GetCharIndexFromTextRenderRectPoint(x, y) - selectionStart + 1);
+                    if (selectionRange.Moving < 0) selectionRange = new Range((uint)(selectionRange.Index + selectionRange.Moving), -selectionRange.Moving);
+                    Renderer.SetSelections(new Range[] { selectionRange });
+                }
+                else
+                    Renderer.SetSelections(new Range[0]);
+                Renderer.ForseRender();
+                isLbuttonDown = false;
+            }
+            selection = false;
         }
 
         protected override void OnRendererChanged()
         {
             Renderer.SetCaretes(new uint[] { 0 });
             Renderer.SetFont("Times New Roman", 0, 48, 400);
+            Renderer.ForseRender();
         }
 
         protected override void OnScroll(int xWheelTriggers, int yWheelTriggers)

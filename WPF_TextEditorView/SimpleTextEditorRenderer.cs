@@ -109,11 +109,11 @@ namespace WPF_TextEditorView
 
                 Rectangle r = new Rectangle();
                 string beforeSelection = src.Substring(min - startRange.Moving, startRange.Moving);
-                r.X = Math.Max(TextOffsetLeft + GetTextSizePixels(src.Substring(min - startRange.Moving, startRange.Moving)).Width - HorisontalScrollPixels, TextOffsetLeft);
+                r.X = Math.Max(TextOffsetLeft + GetTextWidthPixels(src.Substring(min - startRange.Moving, startRange.Moving)) - HorisontalScrollPixels, TextOffsetLeft);
                 r.Y = Math.Min(TextOffsetTop + (int)startRange.Index * FontHeight - textDrawingRectOffsetY, TextOffsetTop);
                 r.Height = Math.Min(FontHeight - ((int)startRange.Index * textDrawingLinesOffset), TextRenderHeight - (int)startRange.Index * textDrawingLinesOffset);
                 if (endRange.Index == startRange.Index)
-                    r.Width = Math.Max(GetTextSizePixels(src.Substring(min, max)).Width - TextOffsetRight - HorisontalScrollPixels, 0) ;
+                    r.Width = Math.Max(GetTextWidthPixels(src.Substring(min, max)) - TextOffsetRight - HorisontalScrollPixels, 0) ;
                 else
                 {
                     r.Width = Math.Max(BufferWidth - r.X - TextOffsetRight, 0);
@@ -125,7 +125,7 @@ namespace WPF_TextEditorView
                             Math.Min((int)(endRange.Index - startRange.Index - 1) * FontHeight, TextRenderHeight - (int)((startRange.Index + 1) * FontHeight) )
                         ));
 
-                    int lastSelectedLineWidth = GetTextSizePixels(src.Substring(max - endRange.Moving, endRange.Moving)).Width;
+                    int lastSelectedLineWidth = GetTextWidthPixels(src.Substring(max - endRange.Moving, endRange.Moving));
 
                     selectionRects.Add(
                         new Rectangle(
@@ -154,7 +154,7 @@ namespace WPF_TextEditorView
 
                     if (careteLineRange.Index < textDrawingLinesOffset) continue;
 
-                    int careteTextX = GetTextSizePixels(Text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)).Width - HorisontalScrollPixels;
+                    int careteTextX = GetTextWidthPixels(Text.Substring((int)carete - careteLineRange.Moving, careteLineRange.Moving)) - HorisontalScrollPixels;
                     int careteTextY = (int)careteLineRange.Index * FontHeight - FontHeight * textDrawingLinesOffset - textDrawingOffsetY;
 
                     if (careteTextX > TextRenderWidth || careteTextY > TextRenderHeight) continue;
@@ -207,11 +207,11 @@ namespace WPF_TextEditorView
             return new Range((uint)line, in_line);
         }
 
-        public override Size GetTextSizePixels(string text)
+        public override int GetTextWidthPixels(string text)
         {
             Size size;
             GetTextExtentPoint32W(backBufferHdc, text, text.Length, out size);
-            return size;
+            return size.Width;
         }
 
         protected override void OnSettingHorisontalScrollPixels()
@@ -224,7 +224,7 @@ namespace WPF_TextEditorView
             requiredBufferRedraw = true;
         }
 
-        public override uint GetCharIndexFromTextRenderRectPoint(int x, int y)
+        public override int GetCharIndexFromTextRenderRectPoint(int x, int y)
         {
             string[] lines = Text.Split('\n').Select(l => l + "\n").ToArray();
 
@@ -233,23 +233,11 @@ namespace WPF_TextEditorView
 
             for(int i = 0; i < lines[line].Length; i++)
             {
-                charLineX += GetTextSizePixels($"{lines[line][i]}").Width;
-                if (charLineX > x) return (uint)lines.Where((l, id) => id < line).Select(l => l.Length).Sum() + (uint)i;
+                charLineX += GetTextWidthPixels($"{lines[line][i]}");
+                if (charLineX > x) return lines.Where((l, id) => id < line).Select(l => l.Length).Sum() + i;
             }
 
-            return (uint)TextSource.Length - 1;
-        }
-
-        public override uint GetTextWidthPixels()
-        {
-            Size size;
-            GetTextExtentPoint32W(backBufferHdc, Text, Text.Length, out size);
-            return (uint)size.Width;
-        }
-
-        public override uint GetTextHeightPixels()
-        {
-            return (uint)(Text.Split('\n').Length * FontHeight);
+            return TextSource.Length - 1;
         }
 
         ~SimpleTextEditorRenderer()

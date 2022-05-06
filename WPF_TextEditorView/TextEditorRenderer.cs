@@ -116,10 +116,8 @@ namespace WPF_TextEditorView
         protected abstract void OnSettingSelections();
         protected abstract void OnFontChanged();
 
-        public abstract Size GetTextSizePixels(string text);
-        public abstract uint GetCharIndexFromTextRenderRectPoint(int x, int y);
-        public abstract uint GetTextWidthPixels();
-        public abstract uint GetTextHeightPixels();
+        public abstract int GetTextWidthPixels(string text);
+        public abstract int GetCharIndexFromTextRenderRectPoint(int x, int y);
 
 
         public void TextRemove(Range range)

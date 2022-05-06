@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace WPF_TextEditorView
 {
@@ -31,13 +32,13 @@ namespace WPF_TextEditorView
             OnTextInput(text);
         }
 
-        public void MouseDown(int x, int y, int mouseButton)
+        public void MouseDown(int x, int y, MouseButtons mouseButton)
         {
             if (Renderer == null) return;
             OnMouseDown(x, y, mouseButton);
         }
 
-        public void MouseUp(int x, int y, int mouseButton)
+        public void MouseUp(int x, int y, MouseButtons mouseButton)
         {
             if (Renderer == null) return;
             OnMouseUp(x, y, mouseButton);
@@ -47,6 +48,12 @@ namespace WPF_TextEditorView
         {
             if (Renderer == null) return;
             OnKeyDown(keyCode, shift, alt);
+        }
+
+        public void MouseMove(int x, int y)
+        {
+            if (Renderer == null) return;
+            OnMouseMove(x, y);
         }
 
         public void KeyUp(int keyCode, bool shift, bool alt)
@@ -65,8 +72,9 @@ namespace WPF_TextEditorView
         protected abstract void OnRendererChanged();
         protected abstract void OnCharInput(char ch);
         protected abstract void OnTextInput(string text);
-        protected abstract void OnMouseDown(int x, int y, int mouseButton);
-        protected abstract void OnMouseUp(int x, int y, int mouseButton);
+        protected abstract void OnMouseDown(int x, int y, MouseButtons mouseButton);
+        protected abstract void OnMouseUp(int x, int y, MouseButtons mouseButton);
+        protected abstract void OnMouseMove(int x, int y);
         protected abstract void OnKeyDown(int keyCode, bool shift, bool alt);
         protected abstract void OnKeyUp(int keyCode, bool shift, bool alt);
         protected abstract void OnScroll(int xWheelTriggers, int yWheelTriggers);
