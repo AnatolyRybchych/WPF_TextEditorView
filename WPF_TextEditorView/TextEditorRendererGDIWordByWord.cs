@@ -11,6 +11,7 @@ namespace WPF_TextEditorView
     {
         private LinkedList<uint> lineLenghts;
         private TextLines lines;
+        private bool requireCaretesRedraw;
 
         public TextEditorRendererGDIWordByWord(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
         {
@@ -18,6 +19,7 @@ namespace WPF_TextEditorView
             lineLenghts.AddLast(0);
             RequireBufferRedraw();
             lines = new TextLines();
+            requireCaretesRedraw = true;
 
         }
 
@@ -56,6 +58,7 @@ namespace WPF_TextEditorView
 
         protected override void OnSetingCaretes()
         {
+            requireCaretesRedraw = true;
         }
 
         protected override void OnSettingHorisontalScrollPixels()
@@ -72,19 +75,75 @@ namespace WPF_TextEditorView
             RequireBufferRedraw();
         }
 
+        private void RenderOffsetTextUnderLine(int line, int offsetLines)
+        {
+            if(offsetLines == 0) return;
+
+            int y = TextOffsetTop + line * FontHeight + FontHeight;
+            int newY = y + offsetLines * FontHeight;
+
+            WinApi.BitBlt(
+                BackBufferHdc, 
+                TextOffsetLeft,
+                newY, 
+                TextRenderWidth, 
+                BufferHeight - newY + FontHeight, 
+                BackBufferHdc, 
+                TextOffsetLeft,
+                y, 
+                WinApi.SRCCOPY
+            );
+        }
+
+        private void RedrawLines(int first, int count)
+        {
+            int overTextCy = FontHeight * first;
+            
+            int textCy = FontHeight * count;            
+            
+            DrawBg(new Rectangle(TextOffsetLeft, TextOffsetTop + overTextCy, TextRenderWidth, textCy));
+            DrawText(lines.GetLinesSafe(first, count),
+                new RECT(-HorisontalScrollPixels, -(VerticalScrollPixels % FontHeight) + overTextCy, 0, 0));
+        }
+
+        private void RedrawLines(int first)
+        {
+            int count = (VerticalScrollPixels + BufferHeight) / FontHeight - first + 1;
+            int overTextCy = FontHeight * first;
+            int textCy = FontHeight * count;
+
+            DrawBg(new Rectangle(TextOffsetLeft, TextOffsetTop + overTextCy, TextRenderWidth, textCy));
+            DrawText(lines.GetLinesSafe(first, count),
+                new RECT(-HorisontalScrollPixels, -(VerticalScrollPixels % FontHeight) + overTextCy, 0, 0));
+        }
+
         protected override void OnTextAppend(TextPasting snippet)
         {
             TextLines.ChangeTextInfo changeInfo;
             lines.AppendText(snippet, out changeInfo);
+            RenderOffsetTextUnderLine(changeInfo.FirstChangedLineIndex, changeInfo.ChangedLinesCount - 1);
+            RedrawLines(changeInfo.FirstChangedLineIndex, changeInfo.ChangedLinesCount + 1);
+        }
 
-            int overtTextCy = FontHeight * changeInfo.FirstChangedLineIndex;
-            int textCy = FontHeight * changeInfo.ChangedLinesCount;
+        protected virtual void DrawCarete(string lineText, int line, int index)
+        {
+            using (Graphics g = Graphics.FromHdc(BackBufferHdc))
+                g.FillRectangle(Brushes.Black,
+                    new Rectangle(
+                        GetTextSizePixels(lineText.Substring(0, index)).Width + HorisontalScrollPixels,
+                        (line - VerticalScrollPixels / FontHeight) * FontHeight + VerticalScrollPixels % FontHeight,
+                        2, FontHeight)
+                    );
+        }
 
-            WinApi.BitBlt(BackBufferHdc, TextOffsetLeft, TextOffsetTop, TextRenderWidth, overtTextCy, BackBufferHdc, TextOffsetLeft, TextOffsetTop, WinApi.SRCCOPY);
-
-            DrawBg(new Rectangle(TextOffsetLeft, TextOffsetTop + overtTextCy, TextRenderWidth, textCy));
-            DrawText(lines.GetLinesSafe(changeInfo.FirstChangedLineIndex, changeInfo.ChangedLinesCount),
-                new RECT(-HorisontalScrollPixels, -(VerticalScrollPixels % FontHeight) + overtTextCy, 0, 0));
+        protected virtual void DrawCaretes()
+        {
+            foreach (var carete in Caretes)
+            {
+                int line, lineStartIndex;
+                LinkedListNode<string> lineNode =  lines.GetNodeByCharIndex(carete, out line, out lineStartIndex);
+                DrawCarete(lineNode.Value, line, (int)carete -  lineStartIndex);
+            }
         }
 
         protected virtual void DrawText(string text, RECT margin = new RECT())
@@ -105,7 +164,13 @@ namespace WPF_TextEditorView
         {
             TextLines.ChangeTextInfo changeInfo;
             lines.RemoveText(range, out changeInfo);
-            RequireBufferRedraw();
+            RedrawLines(changeInfo.FirstChangedLineIndex);
+        }
+
+        protected override void Render(Rectangle square, IntPtr hdc)
+        {
+            if (requireCaretesRedraw) DrawCaretes();
+            base.Render(square, hdc);
         }
 
         protected override void RedrawBuffer()

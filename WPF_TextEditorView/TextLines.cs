@@ -56,7 +56,7 @@ namespace WPF_TextEditorView
             return result;
         }
 
-        private LinkedListNode<string> GetNodeByCharIndex(uint index, out int line, out int lineStartIndex)
+        public LinkedListNode<string> GetNodeByCharIndex(uint index, out int line, out int lineStartIndex)
         {
             lineStartIndex = 0;
             line = 0;
@@ -101,19 +101,15 @@ namespace WPF_TextEditorView
 
             if (range.Moving + range.Index >= node.Value.Length)
             {
-                changedLines++;
                 RemoveRangeFromNode(node.Next, new Range(0, range.Moving - node.Value.Length), ref changedLines);
                 if (range.Index == 0)
                     node.Value = node.Value.Remove((int)range.Index) + node.Next.Value;
                 
                 Lines.Remove(node.Next);
+                changedLines++;
             }
             else
-            {
-                changedLines++;
                 node.Value = node.Value.Remove((int)range.Index, range.Moving);
-            }
-
         }
 
         public void RemoveText(Range range, out ChangeTextInfo removeInfo){
@@ -127,7 +123,7 @@ namespace WPF_TextEditorView
             removeInfo.FirstChangedLineIndex = line;
             removeInfo.FirstChangedLineCharIndex = lineStartIndex;
 
-            int changedLinesCount = 0;
+            int changedLinesCount = 1;
 
             RemoveRangeFromNode(node, new Range(range.Index - (uint)lineStartIndex, range.Moving), ref changedLinesCount);
             removeInfo.ChangedLinesCount = changedLinesCount;
