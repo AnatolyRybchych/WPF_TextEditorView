@@ -27,19 +27,27 @@ namespace WPF_TextEditorView
             return res.ToArray();
         }
 
-        public static string[] KeepSplit(this string self, string delimiters)
+        public static string[] KeepSplit(this string self, string delimiters, bool separateDilimiters = false)
         {
             LinkedList<string> res = new LinkedList<string>();
             string curr = "";
 
             foreach (var ch in self)
             {
-                curr += ch;
+                
                 if (delimiters.Contains(ch))
                 {
-                    res.AddLast(curr);
+                    if(separateDilimiters)
+                    {
+                        res.AddLast(curr);
+                        res.AddLast(ch.ToString());
+                    }
+                    else
+                        res.AddLast(curr + ch);
                     curr = "";
                 }
+                else
+                    curr += ch;
             }
             if (delimiters.Contains(curr.LastOrDefault()))
                 res.AddLast(curr);

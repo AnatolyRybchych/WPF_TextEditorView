@@ -13,7 +13,14 @@ namespace WPF_TextEditorView
         public int BufferWidth { get; private set; }
         public int BufferHeight { get; private set; }
 
-        public Renderer(IntPtr hdc, int bufferWidth, int bufferHeight)
+        public Renderer()
+        {
+            hdc = IntPtr.Zero;
+            BufferWidth = 1;
+            BufferHeight = 1;
+        }
+
+        public virtual void Init(IntPtr hdc, int bufferWidth, int bufferHeight)
         {
             this.BufferWidth = bufferWidth;
             this.BufferHeight = bufferHeight;

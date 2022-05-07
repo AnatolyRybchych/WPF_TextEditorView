@@ -168,8 +168,10 @@ namespace WPF_TextEditorView
             OnFontChanged();
         }
 
-        public TextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
+        public override void Init(IntPtr hdc, int bufferWidth, int bufferHeight)
         {
+            base.Init(hdc, bufferWidth, bufferHeight);
+
             if (hdc == IntPtr.Zero) throw new ArgumentNullException("hdc");
             if (bufferWidth <= 0 || bufferHeight <= 0) throw new ArgumentException("buffer shold have size value > 0");
 

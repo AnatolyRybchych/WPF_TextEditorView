@@ -11,8 +11,9 @@ namespace WPF_TextEditorView
     {
         public GdiFont Font { get; private set; }
 
-        protected TextEditorRendererGDI(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
+        public override void Init(IntPtr hdc, int bufferWidth, int bufferHeight)
         {
+            base.Init(hdc, bufferWidth, bufferHeight);
             Font = new GdiFont(BackBufferHdc, "Times New Roman", 32, 400, 0);
         }
 

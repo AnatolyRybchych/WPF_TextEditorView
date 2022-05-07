@@ -1,22 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace WPF_TextEditorView
 {
+    public class ColorDictionary : Dictionary<string, uint> { }
+
     public class TextEditorRendererGDIWordByWord : TextEditorRendererGDI
     {
         private TextLines lines;
 
-        public virtual string[] SeparateLineByWords(string text) => text.KeepSplit(" \n()[]{};\"\'-+=,.");
+        private string wordSeparators = " \n()[]{}&^<>/\\~`*%;\"\'-+=,.";
+        public string WordSeparators { get { return wordSeparators; } set { wordSeparators = value; RequireBufferRedraw(); } }
+        public virtual string[] SeparateLineByWords(string text) => text.KeepSplit(WordSeparators, true);
 
-        public TextEditorRendererGDIWordByWord(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
+        private Dictionary<string, uint> wordColors;
+        public Dictionary<string, uint> WordColors
+        {
+            get => wordColors;
+            set
+            {
+                wordColors = value;
+                RequireBufferRedraw();
+            }
+        }
+
+        private uint baseWordColor;
+        public uint BaseWordColor
+        {
+            get => baseWordColor;
+            set
+            {
+
+                baseWordColor = value;
+                RequireBufferRedraw();
+            }
+        }
+
+        public override void Init(IntPtr hdc, int bufferWidth, int bufferHeight)
+        {
+            base.Init(hdc, bufferWidth, bufferHeight);
+            RequireBufferRedraw();
+        }
+
+        public TextEditorRendererGDIWordByWord()
         {
             lines = new TextLines();
-            RequireBufferRedraw();
         }
 
         public override int GetCharIndexFromTextRenderRectPoint(int x, int y)
@@ -169,9 +203,17 @@ namespace WPF_TextEditorView
             }
         }
 
+
+        static Random r = new Random();
+        uint[] colors = new uint[100].Select(coor => (uint)r.Next(0, (int)(uint.MaxValue >> 8))).ToArray();
+
         protected virtual void DrawWord(string word, RECT rect, int wordWidth,  int wordInLine, int line)
         {
-            Font.DrawText(word, rect, DrawTextFormat.DT_LEFT);
+            if(WordColors != null && WordColors.ContainsKey(word))
+                WinApi.SetTextColor(BackBufferHdc, WordColors[word]);
+            else
+                WinApi.SetTextColor(BackBufferHdc, BaseWordColor);
+             Font.DrawText(word, rect, DrawTextFormat.DT_LEFT);
         }
 
         private void DrawText()

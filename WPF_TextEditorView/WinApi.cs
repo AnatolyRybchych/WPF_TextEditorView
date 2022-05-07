@@ -51,6 +51,9 @@ namespace WPF_TextEditorView
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int DrawTextExW(IntPtr hdc, string lpchText, int cchText, ref RECT lprc, DrawTextFormat format, ref DrawTextParams @params);
+
+        [DllImport("gdi32.dll")]
+        public static extern uint SetTextColor(IntPtr hdc, uint color);
     }
 
 

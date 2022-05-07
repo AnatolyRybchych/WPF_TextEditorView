@@ -23,12 +23,47 @@ namespace WPF_TextEditorView
 {
     public partial class TextEditor : System.Windows.Controls.UserControl
     {
-        TextEditorRenderer renderer;
-        TextEditorManager manager;
-        Graphics graphics;
+
+        public static TextEditorRenderer DefaultRenderer => new TextEditorRendererGDIWordByWord();
+        public static TextEditorManager DefaultManager => new SimpleTextEditorManager();
+
+        private Graphics graphics;
+        private IntPtr grphicsHdc;
+
+        private TextEditorRenderer renderer = DefaultRenderer;
+        public TextEditorRenderer Renderer
+        {
+            get => renderer;
+            set
+            {
+                value.Init(grphicsHdc, Intrinsic.Width, Intrinsic.Height);
+                value.SetFont(renderer.FontFace, renderer.FontWidth, renderer.FontHeight, renderer.FontWeight);
+                value.TextAppend(new TextPasting(0, renderer.Text));
+                value.SetCaretes(renderer.Caretes);
+                value.SetSelections(renderer.Selections);
+                value.VerticalScrollPixels = renderer.VerticalScrollPixels;
+                value.HorisontalScrollPixels = renderer.HorisontalScrollPixels;
+                renderer = value;
+                manager.SetRenderer(renderer);
+                renderer.ForseRender();
+            }
+        }
+
+        private TextEditorManager manager = DefaultManager;
+        public TextEditorManager Manager
+        {
+            get => manager;
+            set
+            {
+                manager = value;
+                manager.SetRenderer(renderer);
+                renderer.ForseRender();
+            }
+        }
 
         public TextEditor()
         {
+            
             InitializeComponent();
             Intrinsic.Paint += Intrinsic_Paint;
             Intrinsic.Resize += Intrinsic_Resize;
@@ -42,10 +77,11 @@ namespace WPF_TextEditorView
             Intrinsic.Char += Intrinsic_Char;
 
             graphics = Graphics.FromHwnd(Intrinsic.Handle);
-            renderer = new TextEditorRendererGDIWordByWord(graphics.GetHdc(), Intrinsic.Width, Intrinsic.Height);
+            grphicsHdc = graphics.GetHdc();
 
-            manager = new SimpleTextEditorManager();
+            renderer.Init(grphicsHdc, Intrinsic.Width, Intrinsic.Height);
             manager.SetRenderer(renderer);
+            renderer.ForseRender();
         }
 
         private void Intrinsic_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)

@@ -17,8 +17,9 @@ namespace WPF_TextEditorView
         protected abstract void RedrawBuffer();
         protected abstract void OnBufferChangedDc(IntPtr newHdc);
 
-        protected BufferedTextEditorRenderer(IntPtr hdc, int bufferWidth, int bufferHeight) : base(hdc, bufferWidth, bufferHeight)
+        public override void Init(IntPtr hdc, int bufferWidth, int bufferHeight)
         {
+            base.Init(hdc, bufferWidth, bufferHeight);
             backBuffer = new Bitmap(BufferWidth, BufferHeight);
             using (Graphics g = Graphics.FromImage(backBuffer))
                 BackBufferHdc = g.GetHdc();

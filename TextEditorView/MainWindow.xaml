@@ -4,8 +4,25 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TextEditorView"
-        xmlns:WPF_TextEditorView="clr-namespace:WPF_TextEditorView;assembly=WPF_TextEditorView"
+        xmlns:TE="clr-namespace:WPF_TextEditorView;assembly=WPF_TextEditorView" xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <WPF_TextEditorView:TextEditor/>
+    <Window.Resources>
+        <TE:SimpleTextEditorManager x:Key="TextEditorManager"/>
+        <TE:TextEditorRendererGDIWordByWord x:Key="TextEditorRenderer">
+            <TE:TextEditorRendererGDIWordByWord.BaseWordColor>0x000000</TE:TextEditorRendererGDIWordByWord.BaseWordColor>
+            <TE:TextEditorRendererGDIWordByWord.WordColors>
+                <TE:ColorDictionary>
+                    <system:UInt32 x:Key="for">0xff0000</system:UInt32>
+                    <system:UInt32 x:Key="int">0x00ff00</system:UInt32>
+                    <system:UInt32 x:Key=";">0x333333</system:UInt32>
+                    <system:UInt32 x:Key="(">0x5555cc</system:UInt32>
+                    <system:UInt32 x:Key=")">0x5555cc</system:UInt32>
+                </TE:ColorDictionary>
+            </TE:TextEditorRendererGDIWordByWord.WordColors>
+        </TE:TextEditorRendererGDIWordByWord>
+    </Window.Resources>
+
+    <TE:TextEditor  Renderer="{StaticResource TextEditorRenderer}"
+                    Manager="{StaticResource TextEditorManager}"/>
 </Window>

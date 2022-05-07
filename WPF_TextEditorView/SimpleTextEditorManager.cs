@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace WPF_TextEditorView
 {
-    internal class SimpleTextEditorManager : TextEditorManager
+    public class SimpleTextEditorManager : TextEditorManager
     {
         private bool isShiftDown = false;
         private bool isLbuttonDown = false;
@@ -16,6 +16,7 @@ namespace WPF_TextEditorView
 
         public SimpleTextEditorManager()
         {
+            
         }
 
         protected override void OnCharInput(char ch)
